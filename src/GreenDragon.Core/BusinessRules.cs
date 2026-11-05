@@ -14,6 +14,8 @@ public static class BusinessRules
         public const int MaximumRefreshSeconds = 60;
         /// <summary>Minimum and default stable metadata retention in minutes.</summary>
         public const int MetadataCacheMinutes = 60;
+        /// <summary>Hours of inactivity before the shared player-ID catalog expires.</summary>
+        public const int PlayerCatalogCacheHours = 24;
         /// <summary>Lowest room volume percentage.</summary>
         public const int MinimumVolume = 0;
         /// <summary>Highest room volume percentage.</summary>

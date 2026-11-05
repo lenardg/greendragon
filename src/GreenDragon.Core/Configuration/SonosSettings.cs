@@ -11,6 +11,6 @@ public sealed class SonosSettings
     /// <summary>Delay between completed status requests while the page is visible.</summary>
     public int RefreshIntervalSeconds { get; set; } = BusinessRules.Sonos.RefreshIntervalSeconds;
 
-    /// <summary>Absolute retention of stable metadata, in minutes; at least one hour.</summary>
+    /// <summary>Absolute retention of non-catalog metadata, in minutes; at least one hour.</summary>
     public int MetadataCacheDurationMinutes { get; set; } = BusinessRules.Sonos.MetadataCacheMinutes;
 }

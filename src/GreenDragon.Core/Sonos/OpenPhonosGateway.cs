@@ -64,7 +64,7 @@ public sealed class OpenPhonosGateway(ILogger<OpenPhonosGateway> logger, ISonosM
             }
         }
         var catalog = new Catalog(result.Households);
-        cache.Set(_catalogArea, _catalogKey, catalog);
+        cache.Set(_catalogArea, _catalogKey, catalog, SonosCachePolicy.PlayerCatalog);
         return await ReadSnapshotsAsync(catalog, cancellationToken);
     }
 

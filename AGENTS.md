@@ -11,7 +11,7 @@ The portal provides request-driven speaker discovery, live now-playing cards, pl
 - Never test against live Sonos: no discovery scans, device queries, playback commands, event subscriptions, upstream tests, or smoke tests with Sonos enabled.
 - All tests replace ISonosGateway. Keep tests light and focused on our worker, boundaries, page handling and security; assume OpenPhonos works.
 - Sonos:Enabled is false by default. Startup, GET, health probes and idle time must never contact devices.
-- Preserve the single bounded request queue for discovery, refresh and commands. Only enabled visible browser pages use completion-based refresh timers; no server polling, subscriptions or scheduled work. Cache stable player metadata with shared ASP.NET Core MemoryCache for at least one hour; never use that lifetime for live playback state.
+- Preserve the single bounded request queue for discovery, refresh and commands. Only enabled visible browser pages use completion-based refresh timers; no server polling, subscriptions or scheduled work. Cache player IDs/the discovered catalog with shared ASP.NET Core MemoryCache using 24-hour sliding expiration. Other stable metadata retains at least one-hour absolute expiration; live playback state stays fresh.
 - Upstream discovery cannot be canceled in flight. Callers can cancel waiting; do not allow another operation to overlap the unfinished upstream operation.
 - external/openphonos is an unmodified pinned MIT Git submodule. Application code-style rules do not apply to it. Do not format it or run its tests.
 - src/OpenPhonos.* source-build wrappers use .NET 10 and the current central packages. The Sonos wrapper alone suppresses upstream unused-local warnings CS0168/CS0219; no application warnings may be suppressed.

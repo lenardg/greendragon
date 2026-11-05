@@ -79,6 +79,29 @@ public sealed class SonosControlsTests
         firstRequest.TryGet<SpeakerSnapshot>("players", "household-A", out _).ShouldBeFalse();
     }
 
+    [Fact]
+    public void PlayerCatalogUsesTwentyFourHoursOfSlidingRetentionAcrossRequests()
+    {
+        using var memory = new MemoryCache(new MemoryCacheOptions());
+        var clock = new ControlledClock();
+        var settings = Options.Create(new SonosSettings());
+        var firstRequest = new SonosMetadataCache(memory, settings, clock);
+        var nextRequest = new SonosMetadataCache(memory, settings, clock);
+        var player = new SpeakerSnapshot("player", "Room", "Model");
+        firstRequest.Set("catalog", "active", player, SonosCachePolicy.PlayerCatalog);
+        firstRequest.Set("catalog", "idle", player, SonosCachePolicy.PlayerCatalog);
+        clock.Advance(TimeSpan.FromHours(23));
+        nextRequest.TryGet<SpeakerSnapshot>("catalog", "active", out var found).ShouldBeTrue();
+        found.ShouldBeSameAs(player);
+        clock.Advance(TimeSpan.FromHours(2));
+        nextRequest.TryGet<SpeakerSnapshot>("catalog", "idle", out _).ShouldBeFalse();
+        firstRequest.TryGet<SpeakerSnapshot>("catalog", "active", out _).ShouldBeTrue();
+        clock.Advance(TimeSpan.FromHours(23));
+        nextRequest.TryGet<SpeakerSnapshot>("catalog", "active", out _).ShouldBeTrue();
+        clock.Advance(TimeSpan.FromHours(24));
+        firstRequest.TryGet<SpeakerSnapshot>("catalog", "active", out _).ShouldBeFalse();
+    }
+
     [Theory]
     [InlineData(59, false)]
     [InlineData(60, true)]

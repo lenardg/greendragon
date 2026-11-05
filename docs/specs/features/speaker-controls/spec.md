@@ -26,14 +26,14 @@ Status: implemented and verified in place. Changes remain unstaged and uncommitt
 - [x] AC7: Antiforgery, server validation, safe metadata encoding, native form fallback, accessible errors/loading, focus and theme support remain intact.
 - [x] AC8: Poll responses do not overwrite an active slider edit or newer command result. Failed commands are not automatically replayed; retry remains available.
 - [x] AC9: Mocked tests and browser checks cover controls, refresh, security, disabled access and failure recovery. Formatting and a zero-warning build pass. No real Sonos access occurs during verification.
-- [x] AC10: ASP.NET Core IMemoryCache shares player IDs and stable player information across requests, with a configured absolute lifetime of at least one hour. Repeated requests reuse cached metadata; playback status, position, volume and modes still refresh on their normal cadence. Future favorites, playlist and music-library retrieval uses the same minimum lifetime for browse results.
+- [x] AC10: ASP.NET Core IMemoryCache shares player IDs and stable player information across requests, with a 24-hour sliding player-catalog lifetime. Other metadata has a configured absolute lifetime of at least one hour. Repeated requests reuse cached metadata; playback status, position, volume and modes still refresh on their normal cadence. Future favorites, playlist and music-library retrieval uses at least one-hour absolute retention for browse results.
 
 ## Decisions
 
 | ID | Topic | Proposed decision | Reason |
 |---|---|---|---|
 | D1 | Refresh cadence | Sonos:RefreshIntervalSeconds defaults to 5; validated positive bounded range. One completion-based browser timeout, paused while hidden. | Meets every-few-seconds updates without accumulating overlapping browser requests. |
-| D2 | Discovery | SSDP only on initial discovery/manual rediscovery. Share the discovered device catalog through ASP.NET Core IMemoryCache with at least a one-hour metadata lifetime, and refresh topology/status for periodic requests. | Avoid repeating discovery or stable metadata retrieval on every tick; no persistent storage or background scans. |
+| D2 | Discovery | SSDP only on initial discovery/manual rediscovery. Share the discovered device catalog through ASP.NET Core IMemoryCache with 24-hour sliding player-catalog retention, and refresh topology/status for periodic requests. | Avoid repeating discovery or stable metadata retrieval on every tick; no persistent storage or background scans. |
 | D3 | Command ordering | All refreshes and mutations enter the same existing queue. Re-read relevant state/topology inside a command before toggling modes or adjusting volume. | Preserves serialization and handles stale browser state or changed groups. |
 | D4 | Playback scope | Playback, repeat and shuffle affect the current group; volume affects the chosen room. | Matches Sonos coordinator and rendering semantics. |
 | D5 | Repeat/shuffle | Repeat Off -> All -> One -> Off; shuffle independently on/off. Map all six supported combinations; unknown states remain unavailable. | Exposes repeat-one and preserves independent settings. |
@@ -41,7 +41,7 @@ Status: implemented and verified in place. Changes remain unstaged and uncommitt
 | D7 | UI transport | Razor POST handlers with server-rendered card partials; fetch updates stable cards in place. Retain full-page native form results. | Reuses current rendering/encoding/localization without adding a frontend framework or a second JSON rendering path. |
 | D8 | Errors/capabilities | Disable unavailable operations when known, expose current pressed states, retain cards on refresh failure and offer retry. Never automatically retry mutation requests. | Prevents duplicate Previous/Next/toggle commands and keeps context usable. |
 | D9 | Workflow | Written plan review before implementation; edits remain unstaged and uncommitted. | Repository plan-change workflow combined with the user's in-place-development preference. |
-| D10 | Shared metadata and browse cache | Register AddMemoryCache and inject IMemoryCache. Sonos:MetadataCacheDurationMinutes defaults to 60 and validates a minimum of 60. Cache player IDs/stable information and, when implemented, favorites, playlists and music-library results with absolute expiration. | Shares reusable results across requests for at least an hour while reducing latency and upstream calls. |
+| D10 | Shared metadata and browse cache | Register AddMemoryCache and inject IMemoryCache. Sonos:MetadataCacheDurationMinutes defaults to 60 and validates a minimum of 60. Cache player IDs/the catalog with 24-hour sliding expiration; other stable information and future favorites/playlists/music-library results retain the configured absolute expiration. | Shares reusable results across requests for at least an hour while reducing latency and upstream calls. |
 
 No additional product questions are required; the above defaults are reviewable choices.
 
@@ -64,7 +64,7 @@ No additional product questions are required; the above defaults are reviewable 
 
 - ASP.NET Core MemoryCache is registered with AddMemoryCache in SonosServiceCollectionExtensions and injected into the Core cache boundary. Use a focused SonosMetadataCache with an ISonosMetadataCache interface to own keys, retention and invalidation.
 - Share discovered player IDs, stable player information and the gateway's catalog between requests in this host process. Expose immutable application metadata to consumers; keep upstream Player/Household objects private to the gateway and access them only through the sequential worker.
-- Add SonosSettings.MetadataCacheDurationMinutes, default 60, with server-side options validation requiring at least 60 minutes. Put the minimum/default duration in BusinessRules. Use absolute expiration from population, not sliding expiration alone.
+- Add SonosSettings.MetadataCacheDurationMinutes, default 60, with server-side options validation requiring at least 60 minutes. Put the minimum/default duration in BusinessRules. Use absolute expiration for non-catalog metadata. Player IDs/the catalog use a separate 24-hour sliding window, renewed on successful reads.
 - Populate on a requested cache miss through the existing queued gateway operation. Reuse populated entries across subsequent requests; concurrent callers must not launch duplicate upstream retrievals outside the worker. Cache expiration never starts background discovery or other network work.
 - Keep rapidly changing transport state, position, volume, mute, repeat, shuffle and group membership fresh on the existing refresh/command path. A one-hour metadata lifetime must not make live card values stale for an hour.
 - Explicit rediscovery replaces the catalog and invalidates affected metadata; confirmed device removal or a relevant successful mutation can invalidate its entries. Expired/missing catalog entries follow the existing actionable rediscovery flow, without silent recurring SSDP scans.
@@ -89,7 +89,7 @@ No additional product questions are required; the above defaults are reviewable 
 |---|---|
 | SonosCommand | SpeakerId, Kind, optional Volume for SetVolume |
 | SpeakerPlaybackSnapshot additions | RepeatMode: Off/All/One/unknown, Shuffle: true/false/unknown, supported transport actions |
-| Shared metadata cache | Household/source-scoped player IDs and stable player information; absolute expiry from Sonos:MetadataCacheDurationMinutes, default/minimum 60 |
+| Shared metadata cache | Household/source-scoped player IDs and stable player information; 24-hour sliding catalog retention; other metadata uses absolute expiry from Sonos:MetadataCacheDurationMinutes, default/minimum 60 |
 | Future browse cache | Favorites/playlist/library result keyed by household/source and full query shape; same minimum one-hour retention |
 | ISonosBL / ISonosGateway additions | RefreshAsync(CancellationToken), ExecuteAsync(SonosCommand, CancellationToken), returning refreshed application snapshots |
 | POST /?handler=Refresh | Antiforgery token; snapshot card fragment for fetch, full page for native requests |

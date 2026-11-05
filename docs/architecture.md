@@ -46,7 +46,7 @@ The singleton hosted worker waits on a bounded channel. A Razor Page POST calls 
 
 OpenPhonos discovery has no CancellationToken overload. The caller can stop waiting and queued canceled work is skipped, but an in-flight upstream operation must finish before another begins. There are no event subscriptions or background renewal tasks in this increment. Upstream discovery updates its listener address but the application does not subscribe to device events.
 
-Stable player IDs/information, gateway catalogs, rendering service descriptions and unchanged artwork are shared across requests with ISonosMetadataCache backed by ASP.NET Core IMemoryCache. Metadata expires absolutely after at least one hour; live playback state is read afresh on each request. Cache misses/expiry require explicit rediscovery rather than repeated SSDP scans. There is no persistence. See [the integration guide](integrations.md) for dependency maintenance.
+Stable player IDs/information, gateway catalogs, rendering service descriptions and unchanged artwork are shared across requests with ISonosMetadataCache backed by ASP.NET Core IMemoryCache. Player IDs and their catalog expire after 24 hours without access, with successful reads renewing the sliding window. Other metadata expires absolutely after at least one hour; live playback state is read afresh on each request. Cache misses/expiry require explicit rediscovery rather than repeated SSDP scans. There is no persistence. See [the integration guide](integrations.md) for dependency maintenance.
 
 ## Cross-cutting concerns
 

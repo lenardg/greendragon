@@ -57,4 +57,4 @@ If another local application already uses 62001 or 62002, start Aspire with --is
 aspire run --apphost src/GreenDragon.AppHost/GreenDragon.AppHost.csproj --isolated
 ```
 
-Refresh cadence and the minimum one-hour metadata lifetime can be configured with Sonos:RefreshIntervalSeconds and Sonos:MetadataCacheDurationMinutes; defaults and validation are listed in [environment](environment.md#sonos-refresh-and-retention-settings). The stable catalog is shared across browser requests in the host process; playback values remain fresh.
+Refresh cadence and the minimum one-hour metadata lifetime can be configured with Sonos:RefreshIntervalSeconds and Sonos:MetadataCacheDurationMinutes; defaults and validation are listed in [environment](environment.md#sonos-refresh-and-retention-settings). The player-ID catalog is shared across browser requests with 24-hour sliding expiration, renewed by reads. The metadata-duration setting applies to other cached metadata; playback values remain fresh.

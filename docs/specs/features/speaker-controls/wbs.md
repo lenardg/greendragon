@@ -61,3 +61,7 @@
 - ✅ Final checks: dotnet format and verify-no-changes pass; the solution build with OutputPath=bin/PlanCheck/ succeeds with zero warnings/errors. All 22 Core and 27 Web tests pass via direct xUnit executables.
 - ⚠️ The solution-level Microsoft.Testing.Platform command still exits 5 with runner handshake failures and zero discovered tests; both direct test executables pass. This pre-existing runner issue was not changed.
 - ✅ Changes remain unstaged and uncommitted on the current branch; the pinned upstream submodule was not edited or tested.
+
+## Follow-up cache policy
+
+- ✅ Replace the player-ID/catalog's absolute expiration with a 24-hour sliding idle window, renewed on each successful read. Other metadata retains its one-hour minimum absolute policy. Add a clock-controlled regression test for renewal between requests and expiration after inactivity.

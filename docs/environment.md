@@ -27,6 +27,8 @@ Keep the anonymous portal on a trusted private network. Cloud hosting would requ
 |---|---|---|
 | Sonos:Enabled | false | Allows user/browser-driven Sonos requests when true |
 | Sonos:RefreshIntervalSeconds | 5 | Between 2 and 60; delay after completion, while the browser page is visible |
-| Sonos:MetadataCacheDurationMinutes | 60 | At least 60; absolute retention of shared player/catalog metadata, rendering descriptions and artwork |
+| Sonos:MetadataCacheDurationMinutes | 60 | At least 60; absolute retention of non-catalog metadata, rendering descriptions and artwork |
 
-Settings are bound to Core SonosSettings and validated at startup. The cache does not retain live status for an hour; requests read it afresh. Expiry or restart can require the user to select Refresh speakers to rediscover. Retention is process-local, can be explicitly invalidated and is subject to memory-cache eviction. Future favorites/playlist/library results follow this caching policy when implemented.
+Player IDs and the discovered catalog use a separate 24-hour sliding expiration, renewed on every successful read. This player policy is defined by BusinessRules.Sonos.PlayerCatalogCacheHours and is independent of MetadataCacheDurationMinutes.
+
+Settings are bound to Core SonosSettings and validated at startup. Live playback state is read afresh on every request. Expiry or restart can require the user to select Refresh speakers to rediscover. Retention is process-local, can be explicitly invalidated and is subject to memory-cache eviction. Future favorites/playlist/library results follow the non-catalog absolute policy when implemented.

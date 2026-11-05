@@ -22,7 +22,7 @@ Update the submodule deliberately to a reviewed commit, then rebuild the wrapper
 
 ## Shared metadata caching
 
-ISonosMetadataCache uses ASP.NET Core IMemoryCache for stable player/catalog metadata, rendering service descriptions and successful unchanged artwork. Sonos:MetadataCacheDurationMinutes defaults to 60 and validates a minimum of 60 minutes, with absolute expiration that reads do not extend. Only the sequential gateway populates upstream data. Expiration, eviction and restart do not launch network work; the next user request can require explicit rediscovery. Explicit rediscovery replaces the catalog and invalidates affected service/artwork entries.
+ISonosMetadataCache uses ASP.NET Core IMemoryCache for stable player/catalog metadata, rendering service descriptions and successful unchanged artwork. Player IDs and the discovered catalog use SonosCachePolicy.PlayerCatalog: 24-hour sliding expiration, renewed by each successful read. Other entries use MetadataAbsolute: Sonos:MetadataCacheDurationMinutes defaults to 60 and validates a minimum of 60 minutes, with absolute expiration that reads do not extend. Only the sequential gateway populates upstream data. Expiration, eviction and restart do not launch network work; the next user request can require explicit rediscovery. Explicit rediscovery replaces the catalog and invalidates affected service/artwork entries.
 
 Live status, position, volume, mute, repeat, shuffle and group membership use fresh reads regardless of metadata retention. The cache is process-local and nonpersistent.
 
