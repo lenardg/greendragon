@@ -3,6 +3,26 @@ namespace GreenDragon.Core;
 /// <summary>Centralizes limits and conversion rules shared across the application.</summary>
 public static class BusinessRules
 {
+    /// <summary>Defaults and limits for browser-driven Sonos operations.</summary>
+    public static class Sonos
+    {
+        /// <summary>Seconds between completed browser refreshes.</summary>
+        public const int RefreshIntervalSeconds = 5;
+        /// <summary>Shortest supported refresh interval.</summary>
+        public const int MinimumRefreshSeconds = 2;
+        /// <summary>Longest supported refresh interval.</summary>
+        public const int MaximumRefreshSeconds = 60;
+        /// <summary>Minimum and default stable metadata retention in minutes.</summary>
+        public const int MetadataCacheMinutes = 60;
+        /// <summary>Lowest room volume percentage.</summary>
+        public const int MinimumVolume = 0;
+        /// <summary>Highest room volume percentage.</summary>
+        public const int MaximumVolume = 100;
+        /// <summary>Percentage points changed by volume buttons.</summary>
+        public const int VolumeStep = 1;
+        /// <summary>Maximum accepted player identifier length.</summary>
+        public const int MaximumIdLength = 256;
+    }
     /// <summary>Defines the scaffold's example conversion rules.</summary>
     public static class Example
     {

@@ -4,14 +4,14 @@
 
 The Green Dragon uses GreenDragon namespaces and project names. It is a single ASP.NET Core Razor Pages web app with VanillaJS/CSS. ASP.NET Core controllers are the default API style (currently health only). Storage: none. Identity: anonymous, inferred for a trusted home network. Orchestration: Aspire (default). No CLI, database, scheduler or timed tasks. Deployment is on the home LAN, inferred from Sonos UPnP connectivity.
 
-The portal provides request-driven speaker discovery and read-only now-playing snapshots. Playback controls and shortcut activation are future work; do not invent new domain functionality.
+The portal provides request-driven speaker discovery, live now-playing cards, playback/mode controls and room volume. Enabled visible browser pages request status periodically; the server has no background polling. Shortcut activation remains future work.
 
 ## Sonos and tests
 
 - Never test against live Sonos: no discovery scans, device queries, playback commands, event subscriptions, upstream tests, or smoke tests with Sonos enabled.
 - All tests replace ISonosGateway. Keep tests light and focused on our worker, boundaries, page handling and security; assume OpenPhonos works.
 - Sonos:Enabled is false by default. Startup, GET, health probes and idle time must never contact devices.
-- Preserve the single bounded request queue and sequential execution. No timers, polling, subscriptions or scheduled work.
+- Preserve the single bounded request queue for discovery, refresh and commands. Only enabled visible browser pages use completion-based refresh timers; no server polling, subscriptions or scheduled work. Cache stable player metadata with shared ASP.NET Core MemoryCache for at least one hour; never use that lifetime for live playback state.
 - Upstream discovery cannot be canceled in flight. Callers can cancel waiting; do not allow another operation to overlap the unfinished upstream operation.
 - external/openphonos is an unmodified pinned MIT Git submodule. Application code-style rules do not apply to it. Do not format it or run its tests.
 - src/OpenPhonos.* source-build wrappers use .NET 10 and the current central packages. The Sonos wrapper alone suppresses upstream unused-local warnings CS0168/CS0219; no application warnings may be suppressed.

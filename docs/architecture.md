@@ -2,7 +2,7 @@
 
 ## SUMMARY
 
-The Green Dragon is a single web application with an embedded, request-driven Sonos worker. The portal shows read-only now-playing snapshots; playback controls and shortcuts remain future work.
+The Green Dragon is a single web application with an embedded, request-driven Sonos worker. The portal shows live now-playing cards and playback/mode/volume controls; shortcuts remain future work.
 
 ## Solution profile
 
@@ -42,11 +42,11 @@ flowchart LR
 
 ## Execution and boundaries
 
-The singleton hosted worker waits on a bounded channel. A Razor Page POST calls Core business logic, queues discovery and snapshot reads, and waits for its result. When enabled, the browser sends this antiforgery-protected POST once after opening the page, and on manual refresh. Only one request executes at a time. GET, health checks, startup and idle time never cause Sonos network access. Sonos:Enabled is false in checked-in configuration.
+The singleton hosted worker waits on a bounded channel. A Razor Page POST calls Core business logic, queues discovery, status reads and commands, and waits for its result. When enabled, the browser loads cards and requests status about five seconds after the previous request completes while visible. Controls submit explicit commands. There is no server background polling. Only one request executes at a time. GET, health checks, startup and idle time never cause Sonos network access. Sonos:Enabled is false in checked-in configuration.
 
 OpenPhonos discovery has no CancellationToken overload. The caller can stop waiting and queued canceled work is skipped, but an in-flight upstream operation must finish before another begins. There are no event subscriptions or background renewal tasks in this increment. Upstream discovery updates its listener address but the application does not subscribe to device events.
 
-State is returned to the requesting page only; there is no shared snapshot store or persistence. See [the integration guide](integrations.md) for dependency maintenance.
+Stable player IDs/information, gateway catalogs, rendering service descriptions and unchanged artwork are shared across requests with ISonosMetadataCache backed by ASP.NET Core IMemoryCache. Metadata expires absolutely after at least one hour; live playback state is read afresh on each request. Cache misses/expiry require explicit rediscovery rather than repeated SSDP scans. There is no persistence. See [the integration guide](integrations.md) for dependency maintenance.
 
 ## Cross-cutting concerns
 

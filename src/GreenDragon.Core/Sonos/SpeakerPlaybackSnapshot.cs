@@ -17,4 +17,15 @@ public sealed record SpeakerPlaybackSnapshot
     public TimeSpan? Position { get; init; }
     /// <summary>The reported duration, or null for streams and unsupported sources.</summary>
     public TimeSpan? Duration { get; init; }
+
+    /// <summary>The reported repeat mode, or null when unavailable.</summary>
+    public SonosRepeatMode? Repeat { get; init; }
+    /// <summary>The reported shuffle setting, or null when unavailable.</summary>
+    public bool? Shuffle { get; init; }
+    /// <summary>Whether the current source allows previous-track navigation.</summary>
+    public bool CanPrevious { get; init; }
+    /// <summary>Whether the current source allows the displayed play/pause action.</summary>
+    public bool CanTogglePlayback { get; init; }
+    /// <summary>Whether the current source allows next-track navigation.</summary>
+    public bool CanNext { get; init; }
 }

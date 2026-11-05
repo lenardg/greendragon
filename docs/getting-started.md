@@ -32,7 +32,7 @@ The host's user secrets ID is GreenDragon-web. No secrets are required for the i
 dotnet user-secrets set "Sonos:Enabled" "true" --project src/GreenDragon.Web
 ```
 
-When access is enabled, opening the portal automatically requests speaker discovery and now-playing snapshots. Select Refresh speakers to update them. With JavaScript disabled, use the same button to load speakers. Leave access disabled for automated smoke tests. Automated tests replace ISonosGateway even when testing the enabled path.
+When access is enabled, opening the portal loads speaker cards and refreshes status periodically while visible. Select Refresh speakers to explicitly rediscover devices after catalog expiry or network changes. With JavaScript disabled, the same button loads speakers, and native forms handle playback/modes and Apply volume. Leave access disabled for automated smoke tests. Automated tests replace ISonosGateway even when testing the enabled path.
 
 For access from another device, configure Kestrel binding, AllowedHosts and a trusted HTTPS endpoint for the chosen home-network hostname. Checked-in defaults accept localhost and 127.0.0.1 only. Do not expose the anonymous portal to the public internet.
 
@@ -56,3 +56,5 @@ If another local application already uses 62001 or 62002, start Aspire with --is
 ```powershell
 aspire run --apphost src/GreenDragon.AppHost/GreenDragon.AppHost.csproj --isolated
 ```
+
+Refresh cadence and the minimum one-hour metadata lifetime can be configured with Sonos:RefreshIntervalSeconds and Sonos:MetadataCacheDurationMinutes; defaults and validation are listed in [environment](environment.md#sonos-refresh-and-retention-settings). The stable catalog is shared across browser requests in the host process; playback values remain fresh.

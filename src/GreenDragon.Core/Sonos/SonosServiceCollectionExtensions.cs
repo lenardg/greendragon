@@ -2,6 +2,7 @@ using GreenDragon.Core.BusinessLogic;
 using GreenDragon.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace GreenDragon.Core.Sonos;
 
@@ -14,7 +15,15 @@ public static class SonosServiceCollectionExtensions
     /// <returns>The collection for further composition.</returns>
     public static IServiceCollection AddSonos(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<SonosSettings>(configuration.GetSection(SonosSettings.SectionName));
+        services.AddOptions<SonosSettings>().Bind(configuration.GetSection(SonosSettings.SectionName))
+            .Validate(settings => settings.MetadataCacheDurationMinutes >= BusinessRules.Sonos.MetadataCacheMinutes,
+                SonosMessages.MetadataRetentionInvalid)
+            .Validate(settings => settings.RefreshIntervalSeconds is >= BusinessRules.Sonos.MinimumRefreshSeconds
+                and <= BusinessRules.Sonos.MaximumRefreshSeconds, SonosMessages.RefreshIntervalInvalid)
+            .ValidateOnStart();
+        services.AddMemoryCache();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<ISonosMetadataCache, SonosMetadataCache>();
         services.AddSingleton<ISonosGateway, OpenPhonosGateway>();
         services.AddSingleton<SonosBackgroundService>();
         services.AddHostedService(provider => provider.GetRequiredService<SonosBackgroundService>());

@@ -13,8 +13,24 @@ public sealed class SonosBL(SonosBackgroundService worker, IOptions<SonosSetting
     public bool IsEnabled => settings.Value.Enabled;
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<SpeakerSnapshot>> DiscoverAsync(CancellationToken cancellationToken)
+    public int RefreshIntervalSeconds => settings.Value.RefreshIntervalSeconds;
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<SpeakerSnapshot>> DiscoverAsync(CancellationToken cancellationToken, bool rediscover = false)
     {
-        return worker.DiscoverAsync(cancellationToken);
+        return worker.DiscoverAsync(cancellationToken, rediscover);
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<SpeakerSnapshot>> RefreshAsync(CancellationToken cancellationToken)
+    {
+        return worker.RefreshAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<SpeakerSnapshot>> ExecuteAsync(SonosCommand command, CancellationToken cancellationToken)
+    {
+        command.Validate();
+        return worker.ExecuteCommandAsync(command, cancellationToken);
     }
 }

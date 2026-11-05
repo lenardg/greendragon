@@ -11,7 +11,7 @@ Load only the documents relevant to the work. These files describe the portal an
 | [Integrations](integrations.md) | Pinned OpenPhonos source build and offline testing |
 | [Environment](environment.md) | Local deployment, configuration precedence and optional cloud services |
 | [Backend](backend/api.md) | Health route, Razor POST and composition |
-| [Frontend](frontend/pages.md) | Responsive portal, themes and shared localization |
+| [Frontend](frontend/pages.md) | Live speaker cards, controls, themes and shared localization |
 | [Manual testing](manual-testing.md) | UI verification without live Sonos |
 | [Deployment checklist](deployment-checklist.md) | Home deployment tracking |
 

@@ -7,4 +7,10 @@ public sealed class SonosSettings
     public const string SectionName = "Sonos";
     /// <summary>Allows requested Sonos operations; disabled for the initial scaffold.</summary>
     public bool Enabled { get; set; }
+
+    /// <summary>Delay between completed status requests while the page is visible.</summary>
+    public int RefreshIntervalSeconds { get; set; } = BusinessRules.Sonos.RefreshIntervalSeconds;
+
+    /// <summary>Absolute retention of stable metadata, in minutes; at least one hour.</summary>
+    public int MetadataCacheDurationMinutes { get; set; } = BusinessRules.Sonos.MetadataCacheMinutes;
 }

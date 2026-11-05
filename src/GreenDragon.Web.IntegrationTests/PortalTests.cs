@@ -99,7 +99,7 @@ public sealed partial class PortalTests : PortalTestBase
             .Returns(_ => throw new BusinessLogicException("Mock failure"),
                 _ => Task.FromResult<IReadOnlyList<SpeakerSnapshot>>([]));
         var result = await DiscoverAsync();
-        result.ShouldContain("Speakers are unavailable.");
+        result.ShouldContain("The speaker request could not be completed.");
         result.ShouldContain("Refresh speakers");
         result.ShouldContain("data-auto-load=\"false\"");
         (await DiscoverAsync()).ShouldContain("No speakers found.");

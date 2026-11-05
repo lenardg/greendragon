@@ -1,0 +1,18 @@
+@model GreenDragon.Web.Pages.IndexModel
+@inject GreenDragon.Web.Localization.UiText Text
+<div data-result-meta data-operation-succeeded="@(ViewData.ModelState.IsValid ? "true" : "false")" data-has-discovered="@(Model.HasDiscovered ? "true" : "false")">
+    <div asp-validation-summary="All" role="alert"></div>
+</div>
+@if (Model.HasDiscovered)
+{
+    @if (Model.Speakers.Count == 0)
+    {
+        <p role="status" data-empty>@Text["home.discovery.empty"]</p>
+    }
+    <div class="rooms">
+        @foreach (var speaker in Model.Speakers)
+        {
+            <partial name="_SpeakerCard" model="speaker" />
+        }
+    </div>
+}

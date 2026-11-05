@@ -118,6 +118,42 @@ public sealed class SonosBackgroundServiceTests
         await gateway.Received(1).DiscoverAsync(Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task MixedCommandsAndReadsRemainSerializedAfterCallerCancellation()
+    {
+        var gateway = Substitute.For<ISonosGateway>();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<IReadOnlyList<SpeakerSnapshot>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        gateway.RefreshAsync(Arg.Any<CancellationToken>()).Returns(_ => { entered.TrySetResult(); return release.Task; });
+        var command = new SonosCommand("known", SonosCommandKind.Next);
+        gateway.ExecuteAsync(command, Arg.Any<CancellationToken>()).Returns(Task.FromResult<IReadOnlyList<SpeakerSnapshot>>([]));
+        using var worker = CreateWorker(gateway);
+        using var canceled = new CancellationTokenSource();
+        await worker.StartAsync(TestContext.Current.CancellationToken);
+        var first = worker.RefreshAsync(canceled.Token);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        canceled.Cancel();
+        await Should.ThrowAsync<OperationCanceledException>(() => first);
+        var next = worker.ExecuteCommandAsync(command, TestContext.Current.CancellationToken);
+        await gateway.DidNotReceive().ExecuteAsync(command, Arg.Any<CancellationToken>());
+        release.SetResult([]);
+        (await next).ShouldBeEmpty();
+        await gateway.Received(1).ExecuteAsync(command, Arg.Any<CancellationToken>());
+        await worker.StopAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task DisabledWorkerRejectsReadsAndCommandsAndInvalidCommandsNeverReachGateway()
+    {
+        var gateway = Substitute.For<ISonosGateway>();
+        using var worker = CreateWorker(gateway, enabled: false);
+        await worker.StartAsync(TestContext.Current.CancellationToken);
+        await Should.ThrowAsync<BusinessLogicException>(() => worker.RefreshAsync(TestContext.Current.CancellationToken));
+        await Should.ThrowAsync<BusinessLogicException>(() => worker.ExecuteCommandAsync(new("known", SonosCommandKind.Next), TestContext.Current.CancellationToken));
+        Should.Throw<BusinessLogicException>(() => worker.ExecuteCommandAsync(new("known", SonosCommandKind.SetVolume, 101), TestContext.Current.CancellationToken));
+        gateway.ReceivedCalls().ShouldBeEmpty();
+        await worker.StopAsync(TestContext.Current.CancellationToken);
+    }
     private static SonosBackgroundService CreateWorker(ISonosGateway gateway, bool enabled = true)
     {
         return new SonosBackgroundService(gateway, Options.Create(new SonosSettings { Enabled = enabled }),

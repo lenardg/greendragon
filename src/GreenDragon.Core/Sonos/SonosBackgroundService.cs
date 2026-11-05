@@ -15,7 +15,7 @@ namespace GreenDragon.Core.Sonos;
 public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<SonosSettings> settings,
     ILogger<SonosBackgroundService> logger, ILoggerFactory loggerFactory) : BackgroundService
 {
-    private readonly Channel<DiscoveryRequest> _requests = Channel.CreateBounded<DiscoveryRequest>(
+    private readonly Channel<SonosRequest> _requests = Channel.CreateBounded<SonosRequest>(
         new BoundedChannelOptions(BusinessRules.SonosQueueCapacity)
         {
             SingleReader = true,
@@ -25,14 +25,39 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
     /// <summary>Queues a discovery request and waits for its result.</summary>
     /// <param name="cancellationToken">Cancels the pending request or wait.</param>
     /// <returns>The rooms reported by the gateway.</returns>
+    /// <param name="rediscover">Whether to replace cached discovery.</param>
     /// <exception cref="BusinessLogicException">Network access is disabled or the host is stopping.</exception>
-    public async Task<IReadOnlyList<SpeakerSnapshot>> DiscoverAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<SpeakerSnapshot>> DiscoverAsync(CancellationToken cancellationToken, bool rediscover = false)
+    {
+        return QueueAsync(token => gateway.DiscoverAsync(token, rediscover), cancellationToken);
+    }
+
+    /// <summary>Queues a status read on the same bounded channel as commands.</summary>
+    /// <param name="cancellationToken">Cancels the pending request or wait.</param>
+    /// <returns>Fresh room snapshots.</returns>
+    public Task<IReadOnlyList<SpeakerSnapshot>> RefreshAsync(CancellationToken cancellationToken)
+    {
+        return QueueAsync(gateway.RefreshAsync, cancellationToken);
+    }
+
+    /// <summary>Queues a validated mutation without bypassing serialization.</summary>
+    /// <param name="command">The requested operation.</param>
+    /// <param name="cancellationToken">Cancels the pending request or wait.</param>
+    /// <returns>Updated room snapshots.</returns>
+    public Task<IReadOnlyList<SpeakerSnapshot>> ExecuteCommandAsync(SonosCommand command, CancellationToken cancellationToken)
+    {
+        command.Validate();
+        return QueueAsync(token => gateway.ExecuteAsync(command, token), cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<SpeakerSnapshot>> QueueAsync(
+        Func<CancellationToken, Task<IReadOnlyList<SpeakerSnapshot>>> operation, CancellationToken cancellationToken)
     {
         if (!settings.Value.Enabled)
         {
             throw new BusinessLogicException(SonosMessages.Disabled);
         }
-        var request = new DiscoveryRequest(cancellationToken);
+        var request = new SonosRequest(operation, cancellationToken);
         try
         {
             await _requests.Writer.WriteAsync(request, cancellationToken);
@@ -66,7 +91,7 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
                 try
                 {
                     linked.Token.ThrowIfCancellationRequested();
-                    var speakers = await gateway.DiscoverAsync(linked.Token);
+                    var speakers = await request.Operation(linked.Token);
                     linked.Token.ThrowIfCancellationRequested();
                     request.Completion.TrySetResult(speakers);
                 }
@@ -76,7 +101,7 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
                 }
                 catch (Exception exception)
                 {
-                    logger.LogWarning(exception, "Sonos discovery request failed");
+                    logger.LogWarning(exception, "Sonos request failed");
                     request.Completion.TrySetException(new BusinessLogicException(SonosMessages.DiscoveryFailed));
                 }
             }
@@ -95,10 +120,12 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
         }
     }
 
-    private sealed class DiscoveryRequest(CancellationToken cancellationToken)
+    private sealed class SonosRequest(Func<CancellationToken, Task<IReadOnlyList<SpeakerSnapshot>>> operation, CancellationToken cancellationToken)
     {
         /// <summary>Allows queued work to be skipped after its caller disconnects.</summary>
         public CancellationToken CancellationToken { get; } = cancellationToken;
+        /// <summary>The operation executed only by the single channel reader.</summary>
+        public Func<CancellationToken, Task<IReadOnlyList<SpeakerSnapshot>>> Operation { get; } = operation;
 
         /// <summary>Returns the outcome to the caller without executing its continuation on the worker.</summary>
         public TaskCompletionSource<IReadOnlyList<SpeakerSnapshot>> Completion { get; } =

@@ -10,8 +10,11 @@
     <p class="intro">@Text["home.intro"]</p>
     @if (Model.SonosEnabled)
     {
-        <form method="post" asp-page-handler="Discover" data-discovery-form data-auto-load="@(Model.AutoLoad ? "true" : "false")" data-error-label="@Text["home.discovery.error"]">
-            <button type="submit" data-busy-label="@Text["home.discovery.busy"]">@Text["home.discovery.action"]</button>
+        <form method="post" asp-page-handler="Discover" data-discovery-form
+              data-auto-load="@(Model.AutoLoad ? "true" : "false")" data-refresh-url="@Url.Page("/Index", "Refresh")"
+              data-refresh-seconds="@Model.RefreshIntervalSeconds" data-error-label="@Text["home.discovery.error"]"
+              data-busy-label="@Text["home.discovery.busy"]" data-success-label="@Text["home.controls.success"]">
+            <button type="submit" name="rediscover" value="true">@Text["home.discovery.action"]</button>
             <span role="status" aria-live="polite" data-progress></span>
         </form>
         <noscript><p>@Text["home.discovery.manual"]</p></noscript>
@@ -20,67 +23,7 @@
     {
         <p role="status">@Text["home.disabled"]</p>
     }
-    <div data-speaker-results aria-live="polite" aria-atomic="true">
-        <div asp-validation-summary="All" role="alert"></div>
-        @if (Model.HasDiscovered)
-        {
-            <p class="snapshot-note">@Text["home.snapshot"]</p>
-            @if (Model.Speakers.Count == 0)
-            {
-                <p role="status">@Text["home.discovery.empty"]</p>
-            }
-            <div class="rooms">
-                @foreach (var speaker in Model.Speakers)
-                {
-                    var playback = speaker.Playback;
-                    <article class="room">
-                        <h2>@speaker.RoomName</h2>
-                        <p class="speaker-model">@speaker.ModelName</p>
-                        <div class="cover-art">
-                            @if (playback.CoverArtDataUrl is not null)
-                            {
-                                <img src="@playback.CoverArtDataUrl" alt="@Text["home.speaker.cover"]" width="320" height="320" />
-                            }
-                            else
-                            {
-                                <span>@Text["home.speaker.noCover"]</span>
-                            }
-                        </div>
-                        <p class="playback-state">@Text[$"home.playback.{playback.State.ToString().ToLowerInvariant()}"]</p>
-                        <h3>@(string.IsNullOrWhiteSpace(playback.Title) ? Text["home.speaker.noTrack"] : playback.Title)</h3>
-                        @if (!string.IsNullOrWhiteSpace(playback.Artist))
-                        {
-                            <p class="track-artist">@playback.Artist</p>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(playback.Album))
-                        {
-                            <p class="track-album">@playback.Album</p>
-                        }
-                        <dl class="speaker-details">
-                            <div>
-                                <dt>@Text["home.speaker.position"]</dt>
-                                <dd>
-                                    @(playback.Position?.ToString(@"hh\:mm\:ss") ?? Text["home.speaker.unknown"])
-                                    <span aria-hidden="true"> / </span><span class="visually-hidden">@Text["home.speaker.duration"]</span>
-                                    @(playback.Duration is { TotalSeconds: > 0 } duration ? duration.ToString(@"hh\:mm\:ss") : Text["home.speaker.unknown"])
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>@Text["home.speaker.volume"]</dt>
-                                <dd>@(speaker.Volume is { } volume ? $"{volume}%" : Text["home.speaker.unknown"])</dd>
-                            </div>
-                            <div>
-                                <dt>@Text["home.speaker.mute"]</dt>
-                                <dd>@Text[speaker.IsMuted switch { true => "home.speaker.muted", false => "home.speaker.unmuted", null => "home.speaker.unknown" }]</dd>
-                            </div>
-                        </dl>
-                        @if (playback.Duration is { TotalSeconds: > 0 } trackDuration && playback.Position is { } position)
-                        {
-                            <progress max="@trackDuration.TotalSeconds" value="@Math.Clamp(position.TotalSeconds, 0, trackDuration.TotalSeconds)" aria-label="@Text["home.speaker.position"]"></progress>
-                        }
-                    </article>
-                }
-            </div>
-        }
+    <div data-speaker-results>
+        <partial name="_SpeakerResults" model="Model" />
     </div>
 </section>

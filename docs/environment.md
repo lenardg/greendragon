@@ -20,3 +20,13 @@ Sonos:Enabled defaults to false. Enable explicitly for normal use. No speaker ad
 Optional Key Vault uses ConnectionStrings:GreenDragon-keyvault and DefaultAzureCredential. It is not contacted unless configured. Optional Application Insights uses APPLICATIONINSIGHTS_CONNECTION_STRING; otherwise Aspire can use OTEL_EXPORTER_OTLP_ENDPOINT.
 
 Keep the anonymous portal on a trusted private network. Cloud hosting would require a separately designed private network connection to Sonos and is not part of this scaffold.
+
+## Sonos refresh and retention settings
+
+| Setting | Default | Validation / behavior |
+|---|---|---|
+| Sonos:Enabled | false | Allows user/browser-driven Sonos requests when true |
+| Sonos:RefreshIntervalSeconds | 5 | Between 2 and 60; delay after completion, while the browser page is visible |
+| Sonos:MetadataCacheDurationMinutes | 60 | At least 60; absolute retention of shared player/catalog metadata, rendering descriptions and artwork |
+
+Settings are bound to Core SonosSettings and validated at startup. The cache does not retain live status for an hour; requests read it afresh. Expiry or restart can require the user to select Refresh speakers to rediscover. Retention is process-local, can be explicitly invalidated and is subject to memory-cache eviction. Future favorites/playlist/library results follow this caching policy when implemented.
