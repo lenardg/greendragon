@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <!-- Upstream unused locals are retained to keep the pinned source unmodified. -->
+    <NoWarn>$(NoWarn);CS0168;CS0219</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../external/openphonos/src/Sonos/**/*.cs" Exclude="../../external/openphonos/src/Sonos/**/obj/**/*.cs;../../external/openphonos/src/Sonos/**/bin/**/*.cs" />
+    <ProjectReference Include="../OpenPhonos.UPnP/OpenPhonos.UPnP.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+{
+  "app.name": "The Green Dragon",
+  "home.eyebrow": "Your home, in harmony",
+  "home.intro": "Find your Sonos speakers and bring every room together.",
+  "home.discovery.action": "Discover speakers",
+  "home.discovery.busy": "Finding speakers…",
+  "home.discovery.empty": "No speakers found. Check your connection and try again.",
+  "home.discovery.error": "Speakers are unavailable. Please check the connection or contact the person who set up your portal, then try again.",
+  "theme.label": "Theme",
+  "theme.system": "System",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "footer.powered": "Powered by",
+  "error.title": "Something went wrong",
+  "error.message": "Please return home and try again."
+}

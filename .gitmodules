@@ -1,0 +1,3 @@
+[submodule "external/openphonos"]
+	path = external/openphonos
+	url = https://github.com/amp64/openphonos.git

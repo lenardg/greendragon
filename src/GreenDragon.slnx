@@ -1,0 +1,22 @@
+<Solution>
+	<Folder Name="/Dependencies/">
+		<Project Path="OpenPhonos.Sonos/OpenPhonos.Sonos.csproj" />
+		<Project Path="OpenPhonos.UPnP/OpenPhonos.UPnP.csproj" />
+	</Folder>
+	<Folder Name="/Tests/">
+		<Project Path="GreenDragon.Core.UnitTests/GreenDragon.Core.UnitTests.csproj" />
+		<Project Path="GreenDragon.Web.IntegrationTests/GreenDragon.Web.IntegrationTests.csproj" />
+	</Folder>
+	<Project Path="GreenDragon.AppHost/GreenDragon.AppHost.csproj" />
+	<Project Path="GreenDragon.Core/GreenDragon.Core.csproj" />
+	<Project Path="GreenDragon.ServiceDefaults/GreenDragon.ServiceDefaults.csproj" />
+	<Project Path="GreenDragon.Web/GreenDragon.Web.csproj" />
+	<Folder Name="/Solution Items/">
+		<File Path="../.editorconfig" />
+		<File Path="../AGENTS.md" />
+		<File Path="../README.md" />
+		<File Path="../global.json" />
+		<File Path="Directory.Build.props" />
+		<File Path="Directory.Packages.props" />
+	</Folder>
+</Solution>

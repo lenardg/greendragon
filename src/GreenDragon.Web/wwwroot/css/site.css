@@ -1,0 +1,71 @@
+:root {
+  color-scheme: light dark;
+  --background: #f3f5ed;
+  --surface: #ffffff;
+  --text: #172c22;
+  --muted: #4f6258;
+  --accent: #235c40;
+  --on-accent: #ffffff;
+  --border: #c4d0c5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #101b16;
+    --surface: #192920;
+    --text: #edf3e9;
+    --muted: #b7c8b9;
+    --accent: #add0a1;
+    --on-accent: #14251a;
+    --border: #3d5344;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #101b16;
+  --surface: #192920;
+  --text: #edf3e9;
+  --muted: #b7c8b9;
+  --accent: #add0a1;
+  --on-accent: #14251a;
+  --border: #3d5344;
+}
+:root[data-theme="light"] { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font: 1rem/1.6 "Roboto", system-ui, sans-serif;
+}
+.site-header, main, footer {
+  width: min(68rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding-block: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.wordmark { font-weight: 700; }
+.theme-label { display: flex; align-items: center; gap: 0.5rem; }
+select, button { font: inherit; min-height: 2.75rem; border-radius: 0.5rem; }
+select { padding: 0.4rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); }
+main { min-height: 70vh; padding-block: clamp(2rem, 7vw, 5rem); }
+h1 { font: clamp(2.4rem, 7vw, 4.5rem)/1.15 "Russo One", system-ui, sans-serif; max-width: 13ch; margin-block: 0.5rem 1.5rem; }
+.eyebrow { color: var(--accent); font-weight: 700; }
+.intro { max-width: 35rem; font-size: 1.15rem; color: var(--muted); }
+button { padding: 0.65rem 1.25rem; border: 0; background: var(--accent); color: var(--on-accent); cursor: pointer; font-weight: 700; }
+button:disabled { opacity: 0.6; cursor: wait; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+form { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-block: 2rem; }
+.rooms { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
+.room { padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--surface); overflow-wrap: anywhere; }
+.room h2 { margin-top: 0; }
+.validation-summary-valid { display: none; }
+.validation-summary-errors { border-inline-start: 3px solid var(--accent); padding: 0.5rem 1rem; }
+a { color: var(--accent); }
+footer { padding-block: 1.5rem; color: var(--muted); }

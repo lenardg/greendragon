@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compile pinned, unmodified vendor sources using the application runtime. -->
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <RootNamespace>OpenPhonos.UPnP</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../external/openphonos/src/UPnP/**/*.cs" Exclude="../../external/openphonos/src/UPnP/**/obj/**/*.cs;../../external/openphonos/src/UPnP/**/bin/**/*.cs" />
+    <EmbeddedResource Include="../../external/openphonos/src/UPnP/UPnP.resx" LogicalName="OpenPhonos.UPnP.UPnP.resources" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+@page
+@model ErrorModel
+@inject GreenDragon.Web.Localization.UiText Text
+@{
+    ViewData["Title"] = Text["error.title"];
+}
+<h1>@Text["error.title"]</h1>
+<p>@Text["error.message"]</p>

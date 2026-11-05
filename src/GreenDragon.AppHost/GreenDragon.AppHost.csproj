@@ -1,0 +1,10 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <UserSecretsId>GreenDragon-apphost</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../GreenDragon.Web/GreenDragon.Web.csproj" />
+  </ItemGroup>
+</Project>

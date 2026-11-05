@@ -1,0 +1,32 @@
+@page
+@model IndexModel
+@inject GreenDragon.Web.Localization.UiText Text
+@{
+    ViewData["Title"] = Text["app.name"];
+}
+<section class="portal" aria-labelledby="portal-title">
+    <p class="eyebrow">@Text["home.eyebrow"]</p>
+    <h1 id="portal-title">@Text["app.name"]</h1>
+    <p class="intro">@Text["home.intro"]</p>
+    <form method="post" asp-page-handler="Discover" data-discovery-form>
+        <button type="submit" data-idle-label="@Text["home.discovery.action"]" data-busy-label="@Text["home.discovery.busy"]">@Text["home.discovery.action"]</button>
+        <span role="status" aria-live="polite" data-progress></span>
+    </form>
+    <div asp-validation-summary="All" role="alert"></div>
+    @if (Model.HasDiscovered)
+    {
+        @if (Model.Speakers.Count == 0)
+        {
+            <p role="status">@Text["home.discovery.empty"]</p>
+        }
+        <div class="rooms">
+            @foreach (var speaker in Model.Speakers)
+            {
+                <article class="room">
+                    <h2>@speaker.RoomName</h2>
+                    <p>@speaker.ModelName</p>
+                </article>
+            }
+        </div>
+    }
+</section>
