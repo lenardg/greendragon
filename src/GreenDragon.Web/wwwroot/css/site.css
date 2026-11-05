@@ -154,9 +154,10 @@ button:disabled, input:disabled { cursor: not-allowed; }
 
 /* The header stays visible in both player layouts. */
 .room { padding: 0; }
-.room-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
+.room-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); border-start-start-radius: inherit; border-start-end-radius: inherit; background: var(--accent); color: var(--on-accent); }
 .room-header h2 { margin: 0; font-size: 1.2rem; }
-.card-toggle { flex-shrink: 0; }
+.card-toggle { flex-shrink: 0; background: transparent; color: inherit; border-color: currentColor; }
+.card-toggle:focus-visible { outline-color: currentColor; }
 .room-body { padding: 1.25rem; }
 .room[data-collapsed=true] .card-toggle svg { transform: rotate(180deg); }
 .room[data-collapsed=true] .room-body { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; }
