@@ -30,6 +30,8 @@
   "home.playback.nomedia": "No media loaded",
   "home.playback.paused": "Paused",
   "home.speaker.cover": "Current track cover art",
+  "home.speaker.expand": "Expand player",
+  "home.speaker.collapse": "Collapse player",
   "home.speaker.volume": "Volume",
   "home.speaker.muted": "Muted",
   "home.controls.note": "Playback and modes affect the group. Volume affects this room. Unavailable controls are disabled.",

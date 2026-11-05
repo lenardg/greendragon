@@ -152,8 +152,35 @@ button:disabled, input:disabled { cursor: not-allowed; }
 }
 .refresh-controls { margin-block: 1.25rem 0; }
 
-/* The room's display area is a native link; controls remain separate native forms. */
-.room [data-card-display] { position: relative; }
+/* The header stays visible in both player layouts. */
+.room { padding: 0; }
+.room-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); border-start-start-radius: inherit; border-start-end-radius: inherit; background: var(--accent); color: var(--on-accent); }
+.room-header h2 { margin: 0; font-size: 1.2rem; }
+.card-toggle { flex-shrink: 0; background: transparent; color: inherit; border-color: currentColor; }
+.card-toggle:focus-visible { outline-color: currentColor; }
+.room-body { padding: 1.25rem; }
+.room[data-collapsed=true] .card-toggle svg { transform: rotate(180deg); }
+.room[data-collapsed=true] .room-body { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; }
+.room[data-collapsed=true] [data-card-display] { display: contents; }
+.room[data-collapsed=true] .now-playing { grid-column: 2; grid-row: 1; min-width: 0; }
+.room[data-collapsed=true] h3 { margin: 0; }
+.room[data-collapsed=true] .cover-art { grid-column: 1; grid-row: 1; width: 3rem; margin: 0; }
+.room[data-collapsed=true] .cover-art span { padding: 0.2rem; font-size: 0.6rem; }
+.room[data-collapsed=true] .transport-controls { display: flex; grid-column: 3; grid-row: 1; margin: 0; }
+.room[data-collapsed=true] .transport-controls button:not([data-control=play]),
+.room[data-collapsed=true] .track-album,
+.room[data-collapsed=true] .playback-state,
+.room[data-collapsed=true] .position,
+.room[data-collapsed=true] progress,
+.room[data-collapsed=true] .volume-controls,
+.room[data-collapsed=true] .mute-state,
+.room[data-collapsed=true] .control-note { display: none; }
+
+/* Player navigation shares the header while the overview toggle remains independent. */
+.room-header { position: relative; }
+.room-header .player-link { color: inherit; }
+.room-header .player-link:focus-visible { outline-color: currentColor; }
+.room-header .card-toggle { position: relative; z-index: 1; }
 .player-link { text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
 .player-link::after { content: ""; position: absolute; inset: 0; border-radius: 0.5rem; }
 .player-link:hover { text-decoration: none; }
@@ -172,7 +199,7 @@ button:disabled, input:disabled { cursor: not-allowed; }
 .queue-table tr[aria-current=true] { background: var(--background); }
 .queue-current-label { display: block; font-size: 0.75rem; color: var(--accent); }
 @media (min-width: 48rem) {
-  .player-room .room { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr); column-gap: 2rem; padding: 2rem; align-items: center; }
+  .player-room .room-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr); column-gap: 2rem; padding: 2rem; align-items: center; }
   .player-room [data-card-display] { grid-column: 1; grid-row: 1 / 5; }
   .player-room .transport-controls, .player-room .volume-controls, .player-room .mute-state, .player-room .control-note { grid-column: 2; }
   .player-room .transport-controls { margin-top: 0; }
