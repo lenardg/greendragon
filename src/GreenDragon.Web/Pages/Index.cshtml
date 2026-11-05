@@ -5,14 +5,23 @@
     ViewData["Title"] = Text["app.name"];
 }
 <section class="portal" aria-labelledby="portal-title">
+    <div data-speaker-results>
+        <partial name="_SpeakerResults" model="Model" />
+    </div>
     @if (Model.SonosEnabled)
     {
-        <form method="post" asp-page-handler="Discover" data-discovery-form
+        <div class="loading-card" data-loading-card role="status" aria-live="polite" hidden>
+            <span data-progress></span>
+        </div>
+        <form class="refresh-controls" method="post" asp-page-handler="Discover" data-discovery-form
               data-auto-load="@(Model.AutoLoad ? "true" : "false")" data-refresh-url="@Url.Page("/Index", "Refresh")"
               data-refresh-seconds="@Model.RefreshIntervalSeconds" data-error-label="@Text["home.discovery.error"]"
               data-busy-label="@Text["home.discovery.busy"]" data-success-label="@Text["home.controls.success"]">
-            <button type="submit" name="rediscover" value="true">@Text["home.discovery.action"]</button>
-            <span role="status" aria-live="polite" data-progress></span>
+            <button type="submit" name="rediscover" value="true" data-refresh-action hidden="@Model.AutoLoad">@Text["home.discovery.action"]</button>
+            @if (Model.AutoLoad)
+            {
+                <noscript><button type="submit" name="rediscover" value="true">@Text["home.discovery.action"]</button></noscript>
+            }
         </form>
         <noscript><p>@Text["home.discovery.manual"]</p></noscript>
     }
@@ -20,7 +29,5 @@
     {
         <p role="status">@Text["home.disabled"]</p>
     }
-    <div data-speaker-results>
-        <partial name="_SpeakerResults" model="Model" />
-    </div>
+
 </section>

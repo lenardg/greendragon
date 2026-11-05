@@ -19,6 +19,8 @@ public sealed partial class PortalTests : PortalTestBase
         var html = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         html.ShouldContain("The Green Dragon");
         html.ShouldContain("data-auto-load=\"true\"");
+        html.ShouldContain("data-loading-card");
+        html.IndexOf("data-speaker-results", StringComparison.Ordinal).ShouldBeLessThan(html.IndexOf("data-discovery-form", StringComparison.Ordinal));
         response.Headers.GetValues(WebSecurityHeaders.ContentSecurityPolicy).Single().ShouldBe(WebSecurityHeaders.Policy);
         response.Headers.GetValues(WebSecurityHeaders.ContentTypeOptions).Single().ShouldBe(WebSecurityHeaders.NoSniff);
         response.Headers.GetValues(WebSecurityHeaders.ReferrerPolicy).Single().ShouldBe(WebSecurityHeaders.ReferrerPolicyValue);

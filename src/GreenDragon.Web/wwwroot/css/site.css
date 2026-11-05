@@ -140,3 +140,14 @@ progress { width: 100%; accent-color: var(--accent); }
 .mute-state, .control-note { font-size: 0.8rem; color: var(--muted); margin-block: 0.5rem; }
 .control-note { border-top: 1px solid var(--border); padding-top: 0.5rem; }
 button:disabled, input:disabled { cursor: not-allowed; }
+
+[hidden] { display: none !important; }
+.loading-card {
+  width: min(100%, 24rem);
+  margin-block: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+.refresh-controls { margin-block: 1.25rem 0; }

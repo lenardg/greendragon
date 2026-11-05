@@ -24,6 +24,7 @@ themeSelect?.addEventListener("change", () => {
 });
 
 const discoveryForm = document.querySelector("[data-discovery-form]");
+const loadingCard = document.querySelector("[data-loading-card]");
 const speakerResults = document.querySelector("[data-speaker-results]");
 const dirtyVolumes = new Set();
 let refreshTimer;
@@ -111,14 +112,17 @@ function mergeResults(fragment) {
   meta?.replaceWith(fragment.querySelector("[data-result-meta]"));
 }
 
-async function performRequest(url, body, requestRevision, volumeId) {
+async function performRequest(url, body, requestRevision, volumeId, showLoading = false) {
   requestRunning = true;
   controller = new AbortController();
-  const progress = discoveryForm.querySelector("[data-progress]");
-  const button = discoveryForm.querySelector("button");
-  button.disabled = true;
-  discoveryForm.setAttribute("aria-busy", "true");
-  progress.textContent = discoveryForm.dataset.busyLabel;
+  const progress = loadingCard.querySelector("[data-progress]");
+  const button = discoveryForm.querySelector("[data-refresh-action]");
+  button.disabled = showLoading || commandPending;
+  if (showLoading) {
+    loadingCard.hidden = false;
+    discoveryForm.setAttribute("aria-busy", "true");
+    progress.textContent = discoveryForm.dataset.busyLabel;
+  }
   let success = false;
   try {
     const response = await fetch(url, {
@@ -147,7 +151,11 @@ async function performRequest(url, body, requestRevision, volumeId) {
     requestRunning = false;
     button.disabled = false;
     discoveryForm.removeAttribute("aria-busy");
-    progress.textContent = commandPending && success ? discoveryForm.dataset.successLabel : "";
+    button.hidden = false;
+    if (showLoading) {
+      loadingCard.hidden = true;
+      progress.textContent = "";
+    }
   }
   return success;
 }
@@ -159,7 +167,7 @@ function refreshSpeakers() {
   if (!hasCatalog && initialDiscoveryAttempted) return;
   initialDiscoveryAttempted = true;
   const url = hasCatalog ? discoveryForm.dataset.refreshUrl : discoveryForm.action;
-  activeRequest = performRequest(url, new FormData(discoveryForm), revision).finally(scheduleRefresh);
+  activeRequest = performRequest(url, new FormData(discoveryForm), revision, undefined, !hasCatalog).finally(scheduleRefresh);
 }
 
 async function submitOperation(form, submitter, kind) {
@@ -176,7 +184,7 @@ async function submitOperation(form, submitter, kind) {
   try {
     await activeRequest;
     if (form === discoveryForm) dirtyVolumes.clear();
-    activeRequest = performRequest(form.action, body, revision, volumeId);
+    activeRequest = performRequest(form.action, body, revision, volumeId, form === discoveryForm);
     await activeRequest;
   } finally {
     commandPending = false;

@@ -8,7 +8,7 @@ The responsive Razor portal shows live speaker cards with playback, repeat/shuff
 
 The initial GET renders a shell without accessing Sonos. When enabled, JavaScript loads cards through an antiforgery-protected POST, then uses async fetch to read fresh state about five seconds after each completed request. It pauses scheduled reads while hidden or editing volume. No request is started to catch up with a slow response, and initial discovery failures require explicit retry instead of recurring scans.
 
-Refresh speakers explicitly rediscovers devices, including after cache expiration or a network change. Normal status refresh reuses the shared catalog described in [integrations](../integrations.md). Disabled configuration shows an explanation and sends no requests.
+Refresh speakers sits below the speaker list and explicitly rediscovers devices, including after cache expiration or a network change. Initial and manual refreshes show a small loading card. Automatic status reads stay quiet and do not flash a loading indicator. The refresh button stays hidden during the first automatic load and appears when that attempt completes, including on failure so the user can retry. Without JavaScript, a native fallback button is available immediately. Normal status refresh reuses the shared catalog described in [integrations](../integrations.md). Disabled configuration shows an explanation and sends no requests.
 
 Cards omit the model, show the title/artist/album above artwork limited to 10rem square, and display current state, elapsed time/duration and mute. Missing metadata/artwork has an explicit fallback. Razor encodes untrusted metadata.
 
