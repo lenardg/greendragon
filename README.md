@@ -10,6 +10,6 @@ dotnet tool restore
 aspire run --apphost src/GreenDragon.AppHost/GreenDragon.AppHost.csproj
 ```
 
-Open [the local portal](https://localhost:60443). Sonos access is disabled by default. See [getting started](docs/getting-started.md) to enable it for normal use. Tests and automated verification must never contact real speakers.
+Open [the local portal](https://localhost:62002). Sonos access is disabled by default. See [getting started](docs/getting-started.md) to enable it for normal use. Tests and automated verification must never contact real speakers.
 
 See the [documentation index](docs/AGENTS.md) for architecture, configuration and verification.

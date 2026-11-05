@@ -18,7 +18,7 @@ dotnet dev-certs https --trust
 aspire run --apphost src/GreenDragon.AppHost/GreenDragon.AppHost.csproj
 ```
 
-The portal listens on HTTP 60080 and HTTPS 60443 through its launch profile. Aspire's dashboard URL is printed by the CLI. To run Web directly:
+The portal listens on HTTP 62001 and HTTPS 62002 through its launch profile. Aspire's dashboard URL is printed by the CLI. To run Web directly:
 
 ```powershell
 dotnet run --project src/GreenDragon.Web --launch-profile https
@@ -51,7 +51,7 @@ See [backend details](backend/api.md) and [manual testing](manual-testing.md).
 
 ## Port conflicts
 
-If another local application already uses 60080 or 60443, start Aspire with --isolated to choose separate ports and use the dashboard's GreenDragon endpoint. Do not stop unrelated applications. The prescribed default launch ports remain 60080/60443.
+If another local application already uses 62001 or 62002, start Aspire with --isolated to choose separate ports and use the dashboard's GreenDragon endpoint. Do not stop unrelated applications. The default launch ports are 62001/62002.
 
 ```powershell
 aspire run --apphost src/GreenDragon.AppHost/GreenDragon.AppHost.csproj --isolated
