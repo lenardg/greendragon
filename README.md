@@ -2,7 +2,7 @@
 
 A small Razor Pages portal for a home Sonos system, using [OpenPhonos](https://github.com/amp64/openphonos).
 
-The initial scaffold wires a request-driven hosted worker and explicit speaker discovery. Now-playing views and shortcuts, including white noise, are the next increment.
+The portal automatically loads a read-only speaker overview when Sonos is enabled, with cover art, playback status and position, and room volume/mute. Refresh speakers updates the snapshot on demand. Playback controls and shortcuts remain future work.
 
 ```powershell
 git submodule update --init --recursive

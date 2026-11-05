@@ -2,7 +2,7 @@
 
 ## SUMMARY
 
-Load only the documents relevant to the work. These files describe the initial scaffold and its Sonos boundary.
+Load only the documents relevant to the work. These files describe the portal and its request-driven Sonos boundary.
 
 | Document | Read for |
 |---|---|

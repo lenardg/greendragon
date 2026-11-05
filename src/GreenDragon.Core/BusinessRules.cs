@@ -15,4 +15,10 @@ public static class BusinessRules
     }
     /// <summary>Bounds waiting work in the single Sonos worker.</summary>
     public const int SonosQueueCapacity = 8;
+
+    /// <summary>Bounds embedded artwork to one mebibyte per group.</summary>
+    public const int SonosArtworkMaximumBytes = 1024 * 1024;
+
+    /// <summary>Limits time spent loading optional artwork.</summary>
+    public static readonly TimeSpan SonosArtworkTimeout = TimeSpan.FromSeconds(5);
 }

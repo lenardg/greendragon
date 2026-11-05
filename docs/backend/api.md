@@ -8,8 +8,8 @@ The Web host exposes infrastructure health and an antiforgery-protected Razor Pa
 
 | Method and path | Behavior |
 |---|---|
-| GET / | Renders the portal without discovering speakers |
-| POST /?handler=Discover | Validates antiforgery, calls ISonosBL and renders discovered rooms or a retryable error |
+| GET / | Renders the shell; the browser automatically sends a POST when Sonos is enabled |
+| POST /?handler=Discover | Validates antiforgery, calls ISonosBL and renders speaker snapshots or a retryable error |
 | GET /api/health | Returns 200 with an empty body, without checking Sonos |
 | GET /api/health?version=true | Returns the Core assembly version as a JSON string |
 | GET /health, /alive | Standard development-only Aspire probes |

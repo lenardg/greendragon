@@ -7,11 +7,23 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace GreenDragon.Web.Pages;
 
-/// <summary>Displays the starter portal and handles explicit, antiforgery-protected discovery.</summary>
+/// <summary>Displays speaker snapshots using antiforgery-protected requests.</summary>
 /// <param name="sonos">The Core Sonos business boundary.</param>
 /// <param name="text">Localized display text.</param>
 public sealed class IndexModel(ISonosBL sonos, UiText text) : PageModel
 {
+    /// <summary>Indicates whether speaker requests are enabled.</summary>
+    public bool SonosEnabled => sonos.IsEnabled;
+
+    /// <summary>Requests one automatic browser load on the initial page visit.</summary>
+    public bool AutoLoad { get; private set; }
+
+    /// <summary>Renders the shell without contacting speakers.</summary>
+    public void OnGet()
+    {
+        AutoLoad = SonosEnabled;
+    }
+
     /// <summary>The rooms returned for this request only.</summary>
     public IReadOnlyList<SpeakerSnapshot> Speakers { get; private set; } = [];
 

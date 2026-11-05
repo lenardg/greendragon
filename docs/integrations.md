@@ -12,7 +12,7 @@ The two source-build projects under src compile the unmodified Sonos and UPnP so
 
 Upstream sources are exempt from application formatting, XML documentation and nullable requirements. Only the Sonos wrapper suppresses the upstream unused-local warnings CS0168 and CS0219. No application warning is suppressed. Do not format or rewrite the submodule as part of application changes.
 
-ISonosGateway is the single replaceable network boundary. OpenPhonosGateway currently maps explicit discovery into SpeakerSnapshot records. SonosPlatform supplies server platform behavior, and library logs use the configured application ILoggerFactory. Discovery exceptions are logged and translated to safe portal errors.
+ISonosGateway is the single replaceable network boundary. OpenPhonosGateway discovers visible rooms and reads group-coordinator playback plus per-room volume/mute into SpeakerSnapshot records. All reads, including optional artwork downloads, remain inside the serialized request. Failed optional reads display unavailable values. Artwork is embedded as a size-limited raster data URL so HTTP speaker artwork works on the HTTPS portal; redirects are disabled, and plain HTTP artwork must originate from the speaker. SonosPlatform supplies server platform behavior, and library logs use the configured application ILoggerFactory. Discovery exceptions are logged and translated to safe portal errors.
 
 The application does not create event subscriptions, run playback commands or schedule work in this increment. Add new command behavior through Core business logic and the same serialized worker.
 

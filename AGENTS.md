@@ -4,7 +4,7 @@
 
 The Green Dragon uses GreenDragon namespaces and project names. It is a single ASP.NET Core Razor Pages web app with VanillaJS/CSS. ASP.NET Core controllers are the default API style (currently health only). Storage: none. Identity: anonymous, inferred for a trusted home network. Orchestration: Aspire (default). No CLI, database, scheduler or timed tasks. Deployment is on the home LAN, inferred from Sonos UPnP connectivity.
 
-This initial increment provides scaffolding and explicit discovery wiring. Now-playing views, playback and shortcut activation are future work; do not invent new domain functionality.
+The portal provides request-driven speaker discovery and read-only now-playing snapshots. Playback controls and shortcut activation are future work; do not invent new domain functionality.
 
 ## Sonos and tests
 

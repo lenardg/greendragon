@@ -2,7 +2,7 @@
 
 ## SUMMARY
 
-The Green Dragon is a single web application with an embedded, request-driven Sonos worker. This increment establishes the project and real OpenPhonos wiring; playback controls, now-playing views and shortcuts are intentionally future work.
+The Green Dragon is a single web application with an embedded, request-driven Sonos worker. The portal shows read-only now-playing snapshots; playback controls and shortcuts remain future work.
 
 ## Solution profile
 
@@ -42,7 +42,7 @@ flowchart LR
 
 ## Execution and boundaries
 
-The singleton hosted worker waits on a bounded channel. A Razor Page POST calls Core business logic, queues discovery and waits for its result. Only one request executes at a time. GET, health checks, startup and idle time never cause Sonos network access. Sonos:Enabled is false in checked-in configuration.
+The singleton hosted worker waits on a bounded channel. A Razor Page POST calls Core business logic, queues discovery and snapshot reads, and waits for its result. When enabled, the browser sends this antiforgery-protected POST once after opening the page, and on manual refresh. Only one request executes at a time. GET, health checks, startup and idle time never cause Sonos network access. Sonos:Enabled is false in checked-in configuration.
 
 OpenPhonos discovery has no CancellationToken overload. The caller can stop waiting and queued canceled work is skipped, but an in-flight upstream operation must finish before another begins. There are no event subscriptions or background renewal tasks in this increment. Upstream discovery updates its listener address but the application does not subscribe to device events.
 
@@ -52,6 +52,6 @@ State is returned to the requesting page only; there is no shared snapshot store
 
 Configuration uses ASP.NET defaults with an optional local JSON file inserted before user secrets, environment variables and command-line overrides. Optional Key Vault configuration is last. Structured logs use Serilog console output and Aspire OpenTelemetry; Application Insights is enabled only with a connection string.
 
-Razor Pages enforce antiforgery for POST. Razor encodes room names. Security headers, HTTPS redirection and production HSTS protect browser traffic. Access is anonymous and must stay confined to the trusted home network. See [environment](environment.md).
+Razor Pages enforce antiforgery for POST. Razor encodes all device metadata. Security headers, HTTPS redirection and production HSTS protect browser traffic. Access is anonymous and must stay confined to the trusted home network. See [environment](environment.md).
 
 Aspire runs the portal; there is no storage, migration runner, CLI, scheduler, or Azure deployment model.

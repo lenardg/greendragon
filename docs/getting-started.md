@@ -32,7 +32,7 @@ The host's user secrets ID is GreenDragon-web. No secrets are required for the i
 dotnet user-secrets set "Sonos:Enabled" "true" --project src/GreenDragon.Web
 ```
 
-Enabling access does not trigger discovery. Press Discover speakers to make an explicit request. Leave access disabled for automated smoke tests. Automated tests replace ISonosGateway even when testing the enabled path.
+When access is enabled, opening the portal automatically requests speaker discovery and now-playing snapshots. Select Refresh speakers to update them. With JavaScript disabled, use the same button to load speakers. Leave access disabled for automated smoke tests. Automated tests replace ISonosGateway even when testing the enabled path.
 
 For access from another device, configure Kestrel binding, AllowedHosts and a trusted HTTPS endpoint for the chosen home-network hostname. Checked-in defaults accept localhost and 127.0.0.1 only. Do not expose the anonymous portal to the public internet.
 
