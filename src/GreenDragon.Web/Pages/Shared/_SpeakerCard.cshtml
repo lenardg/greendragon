@@ -9,73 +9,82 @@
     var shuffleLabel = Text[playback.Shuffle switch { true => "home.shuffle.on", false => "home.shuffle.off", null => "home.shuffle.unknown" }];
 }
 <article class="room" data-speaker-id="@Model.Id">
-    <div data-card-display>
-        <h2>@Model.RoomName</h2>
-        <h3>@(string.IsNullOrWhiteSpace(playback.Title) ? Text["home.speaker.noTrack"] : playback.Title)</h3>
-        @if (!string.IsNullOrWhiteSpace(playback.Artist))
-        {
-            <p class="track-artist">@playback.Artist</p>
-        }
-        @if (!string.IsNullOrWhiteSpace(playback.Album))
-        {
-            <p class="track-album">@playback.Album</p>
-        }
-        <div class="cover-art">
-            @if (playback.CoverArtDataUrl is not null)
+    <header class="room-header">
+        <h2 data-speaker-name>@Model.RoomName</h2>
+        <button type="button" class="icon-button secondary card-toggle" data-card-toggle aria-expanded="true" aria-controls="speaker-body-@Model.Id" aria-label="@Text["home.speaker.collapse"]" data-expand-label="@Text["home.speaker.expand"]" data-collapse-label="@Text["home.speaker.collapse"]" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6" /></svg>
+        </button>
+    </header>
+    <div class="room-body" id="speaker-body-@Model.Id">
+        <div data-card-display>
+            <div class="now-playing">
+                <h3>@(string.IsNullOrWhiteSpace(playback.Title) ? Text["home.speaker.noTrack"] : playback.Title)</h3>
+                @if (!string.IsNullOrWhiteSpace(playback.Artist))
+                {
+                    <p class="track-artist">@playback.Artist</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(playback.Album))
+                {
+                    <p class="track-album">@playback.Album</p>
+                }
+            </div>
+            <div class="cover-art">
+                @if (playback.CoverArtDataUrl is not null)
+                {
+                    <img src="@playback.CoverArtDataUrl" alt="@Text["home.speaker.cover"]" width="160" height="160" />
+                }
+                else
+                {
+                    <span>@Text["home.speaker.noCover"]</span>
+                }
+            </div>
+            <p class="playback-state">@Text[$"home.playback.{playback.State.ToString().ToLowerInvariant()}"]</p>
+            <div class="position">
+                <span class="visually-hidden">@Text["home.speaker.position"]</span>
+                <span>@(playback.Position?.ToString(@"hh\:mm\:ss") ?? Text["home.speaker.unknown"])</span>
+                <span aria-hidden="true"> / </span><span class="visually-hidden">@Text["home.speaker.duration"]</span>
+                <span>@(playback.Duration is { TotalSeconds: > 0 } duration ? duration.ToString(@"hh\:mm\:ss") : Text["home.speaker.unknown"])</span>
+            </div>
+            @if (playback.Duration is { TotalSeconds: > 0 } trackDuration && playback.Position is { } position)
             {
-                <img src="@playback.CoverArtDataUrl" alt="@Text["home.speaker.cover"]" width="160" height="160" />
-            }
-            else
-            {
-                <span>@Text["home.speaker.noCover"]</span>
+                <progress max="@trackDuration.TotalSeconds" value="@Math.Clamp(position.TotalSeconds, 0, trackDuration.TotalSeconds)" aria-label="@Text["home.speaker.position"]"></progress>
             }
         </div>
-        <p class="playback-state">@Text[$"home.playback.{playback.State.ToString().ToLowerInvariant()}"]</p>
-        <div class="position">
-            <span class="visually-hidden">@Text["home.speaker.position"]</span>
-            <span>@(playback.Position?.ToString(@"hh\:mm\:ss") ?? Text["home.speaker.unknown"])</span>
-            <span aria-hidden="true"> / </span><span class="visually-hidden">@Text["home.speaker.duration"]</span>
-            <span>@(playback.Duration is { TotalSeconds: > 0 } duration ? duration.ToString(@"hh\:mm\:ss") : Text["home.speaker.unknown"])</span>
-        </div>
-        @if (playback.Duration is { TotalSeconds: > 0 } trackDuration && playback.Position is { } position)
-        {
-            <progress max="@trackDuration.TotalSeconds" value="@Math.Clamp(position.TotalSeconds, 0, trackDuration.TotalSeconds)" aria-label="@Text["home.speaker.position"]"></progress>
-        }
+        <form method="post" asp-page="/Index" asp-page-handler="Command" class="transport-controls" data-command-form aria-label="@Model.RoomName">
+            <input type="hidden" name="SpeakerId" value="@Model.Id" />
+            <button type="submit" name="Kind" value="Previous" class="icon-button secondary" data-control="previous" aria-label="@Text["home.controls.previous"]" title="@Text["home.controls.previous"]" disabled="@(!playback.CanPrevious)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M19 4 8 12l11 8Z" /></svg>
+            </button>
+            <button type="submit" name="Kind" value="TogglePlayback" class="icon-button" data-control="play" aria-label="@Text[playing ? "home.controls.pause" : "home.controls.play"]" title="@Text[playing ? "home.controls.pause" : "home.controls.play"]" disabled="@(!playback.CanTogglePlayback)">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    @if (playing) { <path d="M7 4v16M17 4v16" /> }
+                    else { <path d="m7 4 13 8-13 8Z" /> }
+                </svg>
+            </button>
+            <button type="submit" name="Kind" value="Next" class="icon-button secondary" data-control="next" aria-label="@Text["home.controls.next"]" title="@Text["home.controls.next"]" disabled="@(!playback.CanNext)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 11 8-11 8ZM18 4v16" /></svg>
+            </button>
+            <button type="submit" name="Kind" value="CycleRepeat" class="icon-button secondary mode-button" data-control="repeat" aria-label="@repeatLabel" title="@repeatLabel" aria-pressed="@(playback.Repeat is not null and not SonosRepeatMode.Off ? "true" : "false")" disabled="@(playback.Repeat is null)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V7h15l-3-3m3 3-3 3M20 14v3H5l3 3m-3-3 3-3" />
+                    @if (playback.Repeat == SonosRepeatMode.One) { <path d="m10 11 2-1v5m-2 0h4" /> }
+                </svg>
+                <span class="mode-label">@repeatLabel</span>
+            </button>
+            <button type="submit" name="Kind" value="ToggleShuffle" class="icon-button secondary mode-button" data-control="shuffle" aria-label="@shuffleLabel" title="@shuffleLabel" aria-pressed="@(playback.Shuffle == true ? "true" : "false")" disabled="@(playback.Shuffle is null)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3m-3-3 3 3-3 3M3 18h3c5 0 7-12 12-12h3m-3-3 3 3-3 3" /></svg>
+                <span class="mode-label">@shuffleLabel</span>
+            </button>
+        </form>
+        <form method="post" asp-page="/Index" asp-page-handler="Command" class="volume-controls" data-command-form data-volume-form>
+            <input type="hidden" name="SpeakerId" value="@Model.Id" />
+            <label class="volume-label"><span>@Text["home.speaker.volume"] <span data-volume-value>@(Model.Volume is { } volume ? $"{volume}%" : Text["home.speaker.unknown"])</span></span>
+                <input type="range" name="Volume" min="@BusinessRules.Sonos.MinimumVolume" max="@BusinessRules.Sonos.MaximumVolume" step="@BusinessRules.Sonos.VolumeStep" value="@(Model.Volume ?? 0)" data-control="volume" disabled="@(Model.Volume is null)" />
+            </label>
+            <button type="submit" name="Kind" value="VolumeDown" class="icon-button secondary" data-control="down" aria-label="@Text["home.controls.volumeDown"]" disabled="@(Model.Volume is null or <= BusinessRules.Sonos.MinimumVolume)">−</button>
+            <button type="submit" name="Kind" value="VolumeUp" class="icon-button secondary" data-control="up" aria-label="@Text["home.controls.volumeUp"]" disabled="@(Model.Volume is null or >= BusinessRules.Sonos.MaximumVolume)">+</button>
+            <button type="submit" name="Kind" value="SetVolume" class="secondary apply-volume" data-control="apply" disabled="@(Model.Volume is null)">@Text["home.controls.applyVolume"]</button>
+        </form>
+        <p class="mute-state">@Text["home.speaker.mute"]: @Text[Model.IsMuted switch { true => "home.speaker.muted", false => "home.speaker.unmuted", null => "home.speaker.unknown" }]</p>
+        <p class="control-note">@Text["home.controls.note"]</p>
     </div>
-    <form method="post" asp-page="/Index" asp-page-handler="Command" class="transport-controls" data-command-form aria-label="@Model.RoomName">
-        <input type="hidden" name="SpeakerId" value="@Model.Id" />
-        <button type="submit" name="Kind" value="Previous" class="icon-button secondary" data-control="previous" aria-label="@Text["home.controls.previous"]" title="@Text["home.controls.previous"]" disabled="@(!playback.CanPrevious)">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M19 4 8 12l11 8Z" /></svg>
-        </button>
-        <button type="submit" name="Kind" value="TogglePlayback" class="icon-button" data-control="play" aria-label="@Text[playing ? "home.controls.pause" : "home.controls.play"]" title="@Text[playing ? "home.controls.pause" : "home.controls.play"]" disabled="@(!playback.CanTogglePlayback)">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                @if (playing) { <path d="M7 4v16M17 4v16" /> }
-                else { <path d="m7 4 13 8-13 8Z" /> }
-            </svg>
-        </button>
-        <button type="submit" name="Kind" value="Next" class="icon-button secondary" data-control="next" aria-label="@Text["home.controls.next"]" title="@Text["home.controls.next"]" disabled="@(!playback.CanNext)">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 11 8-11 8ZM18 4v16" /></svg>
-        </button>
-        <button type="submit" name="Kind" value="CycleRepeat" class="icon-button secondary mode-button" data-control="repeat" aria-label="@repeatLabel" title="@repeatLabel" aria-pressed="@(playback.Repeat is not null and not SonosRepeatMode.Off ? "true" : "false")" disabled="@(playback.Repeat is null)">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V7h15l-3-3m3 3-3 3M20 14v3H5l3 3m-3-3 3-3" />
-                @if (playback.Repeat == SonosRepeatMode.One) { <path d="m10 11 2-1v5m-2 0h4" /> }
-            </svg>
-            <span class="mode-label">@repeatLabel</span>
-        </button>
-        <button type="submit" name="Kind" value="ToggleShuffle" class="icon-button secondary mode-button" data-control="shuffle" aria-label="@shuffleLabel" title="@shuffleLabel" aria-pressed="@(playback.Shuffle == true ? "true" : "false")" disabled="@(playback.Shuffle is null)">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3m-3-3 3 3-3 3M3 18h3c5 0 7-12 12-12h3m-3-3 3 3-3 3" /></svg>
-            <span class="mode-label">@shuffleLabel</span>
-        </button>
-    </form>
-    <form method="post" asp-page="/Index" asp-page-handler="Command" class="volume-controls" data-command-form data-volume-form>
-        <input type="hidden" name="SpeakerId" value="@Model.Id" />
-        <label class="volume-label"><span>@Text["home.speaker.volume"] <span data-volume-value>@(Model.Volume is { } volume ? $"{volume}%" : Text["home.speaker.unknown"])</span></span>
-            <input type="range" name="Volume" min="@BusinessRules.Sonos.MinimumVolume" max="@BusinessRules.Sonos.MaximumVolume" step="@BusinessRules.Sonos.VolumeStep" value="@(Model.Volume ?? 0)" data-control="volume" disabled="@(Model.Volume is null)" />
-        </label>
-        <button type="submit" name="Kind" value="VolumeDown" class="icon-button secondary" data-control="down" aria-label="@Text["home.controls.volumeDown"]" disabled="@(Model.Volume is null or <= BusinessRules.Sonos.MinimumVolume)">−</button>
-        <button type="submit" name="Kind" value="VolumeUp" class="icon-button secondary" data-control="up" aria-label="@Text["home.controls.volumeUp"]" disabled="@(Model.Volume is null or >= BusinessRules.Sonos.MaximumVolume)">+</button>
-        <button type="submit" name="Kind" value="SetVolume" class="secondary apply-volume" data-control="apply" disabled="@(Model.Volume is null)">@Text["home.controls.applyVolume"]</button>
-    </form>
-    <p class="mute-state">@Text["home.speaker.mute"]: @Text[Model.IsMuted switch { true => "home.speaker.muted", false => "home.speaker.unmuted", null => "home.speaker.unknown" }]</p>
-    <p class="control-note">@Text["home.controls.note"]</p>
 </article>

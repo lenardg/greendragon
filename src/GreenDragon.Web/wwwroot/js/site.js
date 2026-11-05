@@ -27,6 +27,7 @@ const discoveryForm = document.querySelector("[data-discovery-form]");
 const loadingCard = document.querySelector("[data-loading-card]");
 const speakerResults = document.querySelector("[data-speaker-results]");
 const dirtyVolumes = new Set();
+const cardPreferenceKey = "greendragon.player.collapsed.";
 let refreshTimer;
 let activeRequest = Promise.resolve();
 let requestRunning = false;
@@ -41,6 +42,41 @@ document.documentElement.classList.add("js-enabled");
 function cardId(element) {
   return element.closest("[data-speaker-id]")?.dataset.speakerId;
 }
+
+function setCardCollapsed(card, collapsed) {
+  card.dataset.collapsed = String(collapsed);
+  const toggle = card.querySelector("[data-card-toggle]");
+  toggle.setAttribute("aria-expanded", String(!collapsed));
+  toggle.setAttribute("aria-label", collapsed ? toggle.dataset.expandLabel : toggle.dataset.collapseLabel);
+  toggle.hidden = false;
+}
+
+function restoreCardPreferences() {
+  for (const card of speakerResults?.querySelectorAll("[data-speaker-id]:not([data-collapsed])") ?? []) {
+    let collapsed = false;
+    try {
+      collapsed = localStorage.getItem(cardPreferenceKey + card.dataset.speakerId) === "true";
+    } catch {
+      // Cards remain usable when browser storage is unavailable.
+    }
+    setCardCollapsed(card, collapsed);
+  }
+}
+
+restoreCardPreferences();
+
+speakerResults?.addEventListener("click", event => {
+  const toggle = event.target.closest("[data-card-toggle]");
+  if (!toggle) return;
+  const card = toggle.closest("[data-speaker-id]");
+  const collapsed = card.dataset.collapsed !== "true";
+  setCardCollapsed(card, collapsed);
+  try {
+    localStorage.setItem(cardPreferenceKey + card.dataset.speakerId, String(collapsed));
+  } catch {
+    // The current page still remembers the selection until it is reloaded.
+  }
+});
 
 function scheduleRefresh() {
   clearTimeout(refreshTimer);
@@ -69,6 +105,7 @@ function setCommandBusy(busy) {
 
 function updateCard(current, incoming) {
   // Keep form controls themselves alive so keyboard focus and slider interaction survive a refresh.
+  current.querySelector("[data-speaker-name]").textContent = incoming.querySelector("[data-speaker-name]").textContent;
   current.querySelector("[data-card-display]").replaceChildren(...incoming.querySelector("[data-card-display]").childNodes);
   for (const fresh of incoming.querySelectorAll("[data-control]")) {
     const control = [...current.querySelectorAll("[data-control]")].find(item => item.dataset.control === fresh.dataset.control);
@@ -97,6 +134,7 @@ function mergeResults(fragment) {
   const freshRooms = fragment.querySelector(".rooms");
   if (!rooms || !freshRooms) {
     speakerResults.replaceChildren(...fragment.childNodes);
+    restoreCardPreferences();
     return;
   }
   const freshCards = [...freshRooms.querySelectorAll("[data-speaker-id]")];
@@ -108,6 +146,7 @@ function mergeResults(fragment) {
     if (current) updateCard(current, fresh);
     else rooms.append(fresh);
   }
+  restoreCardPreferences();
   const meta = speakerResults.querySelector("[data-result-meta]");
   meta?.replaceWith(fragment.querySelector("[data-result-meta]"));
 }
