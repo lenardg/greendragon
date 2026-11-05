@@ -5,9 +5,6 @@
     ViewData["Title"] = Text["app.name"];
 }
 <section class="portal" aria-labelledby="portal-title">
-    <p class="eyebrow">@Text["home.eyebrow"]</p>
-    <h1 id="portal-title">@Text["app.name"]</h1>
-    <p class="intro">@Text["home.intro"]</p>
     @if (Model.SonosEnabled)
     {
         <form method="post" asp-page-handler="Discover" data-discovery-form

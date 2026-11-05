@@ -24,8 +24,8 @@ The server processes every read and command through one bounded queue. Browser c
 
 ## Presentation
 
-Semantic HTML, keyboard focus and flexible layouts support phones, tablets and desktops. CSS variables support System, Light and Dark; explicit selection is retained in browser local storage. Reduced-motion preferences disable spinner rotation.
+The compact site header contains the product title and theme selector. The page has no introductory hero, so speaker content starts directly below the header. Semantic HTML, keyboard focus and flexible layouts support phones, tablets and desktops. CSS variables support System, Light and Dark; explicit selection is retained in browser local storage. Reduced-motion preferences disable spinner rotation.
 
-The shared English catalog is wwwroot/i18n/en.json, read by UiText and supplied to JavaScript through data attributes. Unsupported browser cultures fall back to English. Roboto and Russo One load from Google Fonts with system fallbacks. CSP permits the font origins and embedded raster artwork. No frontend package manager or UI framework is required.
+The shared English catalog is wwwroot/i18n/en.json, read by UiText and supplied to JavaScript through data attributes. Unsupported browser cultures fall back to English. Roboto and Uncial Antiqua load from Google Fonts with system/serif fallbacks; Uncial Antiqua is used for the product title. CSP permits the font origins and embedded raster artwork. No frontend package manager or UI framework is required.
 
 See [manual testing](../manual-testing.md).
