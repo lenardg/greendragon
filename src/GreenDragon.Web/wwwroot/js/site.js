@@ -69,7 +69,9 @@ function setCommandBusy(busy) {
 
 function updateCard(current, incoming) {
   // Keep form controls themselves alive so keyboard focus and slider interaction survive a refresh.
+  const linkFocused = current.querySelector(".player-link") === document.activeElement;
   current.querySelector("[data-card-display]").replaceChildren(...incoming.querySelector("[data-card-display]").childNodes);
+  if (linkFocused) current.querySelector(".player-link")?.focus({ preventScroll: true });
   for (const fresh of incoming.querySelectorAll("[data-control]")) {
     const control = [...current.querySelectorAll("[data-control]")].find(item => item.dataset.control === fresh.dataset.control);
     if (!control) continue;
@@ -107,6 +109,22 @@ function mergeResults(fragment) {
     const current = [...rooms.querySelectorAll("[data-speaker-id]")].find(card => card.dataset.speakerId === fresh.dataset.speakerId);
     if (current) updateCard(current, fresh);
     else rooms.append(fresh);
+  }
+  for (const selector of ["[data-player-breadcrumb]", "[data-player-queue]"]) {
+    const current = speakerResults.querySelector(selector);
+    const incoming = fragment.querySelector(selector);
+    if (!current || !incoming) continue;
+    if (selector === "[data-player-breadcrumb]") {
+      current.querySelector("[aria-current]").textContent = incoming.querySelector("[aria-current]").textContent;
+    } else {
+      const scroll = current.querySelector(".queue-table-scroll");
+      const scrollFocused = scroll === document.activeElement;
+      const offset = scroll?.scrollLeft ?? 0;
+      current.replaceWith(incoming);
+      const nextScroll = incoming.querySelector(".queue-table-scroll");
+      if (nextScroll) nextScroll.scrollLeft = offset;
+      if (scrollFocused) nextScroll?.focus({ preventScroll: true });
+    }
   }
   const meta = speakerResults.querySelector("[data-result-meta]");
   meta?.replaceWith(fragment.querySelector("[data-result-meta]"));

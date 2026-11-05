@@ -13,6 +13,11 @@ namespace GreenDragon.Core.Sonos;
 /// <param name="cache">Shares stable metadata between requests.</param>
 public sealed class OpenPhonosGateway(ILogger<OpenPhonosGateway> logger, ISonosMetadataCache cache) : ISonosGateway, IDisposable
 {
+    private const string _queueId = "Q:0";
+    private const string _browseChildren = "BrowseDirectChildren";
+    private const string _allMetadata = "*";
+    private const string _queueUriPrefix = "x-rincon-queue:";
+    private static readonly XNamespace DidlNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/";
     private const string _catalogArea = "Sonos.Catalog";
     private const string _catalogKey = "Households";
     private const string _renderingArea = "Sonos.Rendering";
@@ -131,6 +136,77 @@ public sealed class OpenPhonosGateway(ILogger<OpenPhonosGateway> logger, ISonosM
         cancellationToken.ThrowIfCancellationRequested();
         response.ThrowIfFailed();
         return await ReadSnapshotsAsync(catalog, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<SpeakerDetailsSnapshot> ReadPlayerAsync(string speakerId, CancellationToken cancellationToken)
+    {
+        var catalog = GetCatalog();
+        await UpdateTopologyAsync(catalog, cancellationToken);
+        var household = catalog.Households.FirstOrDefault(item => item.VisiblePlayerList.Any(player => player.UniqueName == speakerId));
+        var player = household?.VisiblePlayerList.FirstOrDefault(item => item.UniqueName == speakerId)
+            ?? throw new BusinessLogicException(SonosMessages.Rediscover);
+        var coordinator = Coordinator(household!, player);
+        var playback = await ReadPlaybackAsync(coordinator, cancellationToken);
+        var speaker = await ReadRoomAsync(player, playback, cancellationToken);
+        return new SpeakerDetailsSnapshot(speaker, await ReadQueueAsync(coordinator, cancellationToken));
+    }
+
+    private async Task<SpeakerQueueSnapshot> ReadQueueAsync(Player coordinator, CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var media = await coordinator.AVTransport.GetMediaInfo(_instanceId);
+            cancellationToken.ThrowIfCancellationRequested();
+            media.ThrowIfFailed();
+            if (media.CurrentURI?.StartsWith(_queueUriPrefix, StringComparison.OrdinalIgnoreCase) != true)
+            {
+                return new SpeakerQueueSnapshot { IsAvailable = true };
+            }
+            var position = await coordinator.AVTransport.GetPositionInfo(_instanceId);
+            cancellationToken.ThrowIfCancellationRequested();
+            position.ThrowIfFailed();
+            var start = position.Track > 0 ? position.Track - 1 : 0;
+            var result = await coordinator.ContentDirectory.Browse(_queueId, _browseChildren, _allMetadata,
+                start, BusinessRules.Sonos.QueuePreviewLength, string.Empty);
+            cancellationToken.ThrowIfCancellationRequested();
+            result.ThrowIfFailed();
+            var tracks = ParseQueueTracks(result.Result, start);
+            var first = tracks.FirstOrDefault(track => track.Number == 1);
+            // The first entry is needed to describe repeat-all at the end of a queue.
+            if (position.Track == result.TotalMatches && position.Track > 1)
+            {
+                var beginning = await coordinator.ContentDirectory.Browse(_queueId, _browseChildren, _allMetadata, 0, 1, string.Empty);
+                cancellationToken.ThrowIfCancellationRequested();
+                beginning.ThrowIfFailed();
+                first = ParseQueueTracks(beginning.Result, 0).FirstOrDefault();
+            }
+            return new SpeakerQueueSnapshot
+            {
+                IsAvailable = true,
+                IsActive = true,
+                TotalCount = result.TotalMatches,
+                CurrentTrackNumber = position.Track,
+                Tracks = tracks,
+                FirstTrack = first
+            };
+        }
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(exception, "Could not read queue for speaker {SpeakerId}", coordinator.UniqueName);
+            return new SpeakerQueueSnapshot();
+        }
+    }
+
+    private static IReadOnlyList<SpeakerQueueTrack> ParseQueueTracks(string metadata, uint start)
+    {
+        return XElement.Parse(metadata).Elements(DidlNamespace + "item")
+            .Take(BusinessRules.Sonos.QueuePreviewLength)
+            .Select((item, index) => new SpeakerQueueTrack(start + (uint)index + 1,
+                item.Element(DcNamespace + "title")?.Value,
+                item.Element(DcNamespace + "creator")?.Value,
+                item.Element(UpnpNamespace + "album")?.Value)).ToArray();
     }
 
     private Catalog GetCatalog()

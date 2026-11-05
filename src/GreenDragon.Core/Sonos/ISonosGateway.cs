@@ -14,6 +14,12 @@ public interface ISonosGateway
     /// <returns>Current room snapshots.</returns>
     Task<IReadOnlyList<SpeakerSnapshot>> RefreshAsync(CancellationToken cancellationToken);
 
+    /// <summary>Reads one known room and its queue without performing discovery.</summary>
+    /// <param name="speakerId">The stable identifier from the discovered catalog.</param>
+    /// <param name="cancellationToken">Cancels the caller's wait.</param>
+    /// <returns>The selected room and its bounded queue preview.</returns>
+    Task<SpeakerDetailsSnapshot> ReadPlayerAsync(string speakerId, CancellationToken cancellationToken);
+
     /// <summary>Executes a command and reads the resulting state inside the sequential worker.</summary>
     /// <param name="command">The validated command addressed to a known player.</param>
     /// <param name="cancellationToken">Cancels waiting before or after upstream calls.</param>

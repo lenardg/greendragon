@@ -1,0 +1,63 @@
+@model GreenDragon.Core.Sonos.SpeakerDetailsSnapshot
+@using System.Globalization
+@using GreenDragon.Core
+@using GreenDragon.Core.Sonos
+@inject GreenDragon.Web.Localization.UiText Text
+@{
+    var queue = Model.Queue;
+    var playback = Model.Speaker.Playback;
+}
+<section class="player-queue" aria-labelledby="queue-title" data-player-queue>
+    <h2 id="queue-title">@Text["player.queue.title"]</h2>
+    <div class="queue-summary">
+        <section aria-labelledby="queue-current">
+            <h3 id="queue-current">@Text["player.queue.current"]</h3>
+            <p class="queue-track-title">@(string.IsNullOrWhiteSpace(playback.Title) ? Text["home.speaker.noTrack"] : playback.Title)</p>
+            @if (!string.IsNullOrWhiteSpace(playback.Artist)) { <p class="track-artist">@playback.Artist</p> }
+        </section>
+        <section aria-labelledby="queue-next">
+            <h3 id="queue-next">@Text["player.queue.next"]</h3>
+            @if (queue.NextTrack is { } next)
+            {
+                <p class="queue-track-title">@(string.IsNullOrWhiteSpace(next.Title) ? Text["home.speaker.noTrack"] : next.Title)</p>
+                @if (!string.IsNullOrWhiteSpace(next.Artist)) { <p class="track-artist">@next.Artist</p> }
+            }
+            else
+            {
+                <p>@Text[!queue.IsAvailable ? "player.queue.unavailable" : !queue.IsActive ? "player.queue.source" :
+                    playback.Shuffle != false ? "player.queue.orderUnknown" : queue.CurrentTrackNumber == 0 && queue.TotalCount > 0 ? "player.queue.positionUnknown" : "player.queue.end"]</p>
+            }
+        </section>
+    </div>
+    @if (!queue.IsAvailable)
+    {
+        <p role="status">@Text["player.queue.retry"]</p>
+    }
+    else if (queue.IsActive)
+    {
+        @if (queue.Tracks.Count == 0)
+        {
+            <p role="status">@Text["player.queue.empty"]</p>
+        }
+        else
+        {
+            <h3>@Text["player.queue.order"]</h3>
+            <p class="snapshot-note">@string.Format(CultureInfo.CurrentCulture, Text["player.queue.preview"], BusinessRules.Sonos.QueuePreviewLength, queue.TotalCount)</p>
+            <div class="queue-table-scroll" tabindex="0" role="region" aria-label="@Text["player.queue.order"]">
+                <table class="queue-table">
+                    <thead><tr><th scope="col">@Text["player.queue.number"]</th><th scope="col">@Text["player.queue.track"]</th><th scope="col">@Text["player.queue.artist"]</th><th scope="col">@Text["player.queue.album"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var track in queue.Tracks)
+                        {
+                            <tr aria-current="@(track.Number == queue.CurrentTrackNumber ? "true" : null)">
+                                <th scope="row">@track.Number @if (track.Number == queue.CurrentTrackNumber) { <span class="queue-current-label">@Text["player.queue.current"]</span> }</th>
+                                <td>@(string.IsNullOrWhiteSpace(track.Title) ? Text["home.speaker.noTrack"] : track.Title)</td>
+                                <td>@track.Artist</td><td>@track.Album</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</section>

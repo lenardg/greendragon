@@ -1,0 +1,22 @@
+@model GreenDragon.Web.Pages.PlayerModel
+@using GreenDragon.Web.Configuration
+@inject GreenDragon.Web.Localization.UiText Text
+@{
+    ViewData[PortalRequests.PlayerIdKey] = Model.Id;
+    var details = Model.Details;
+}
+<div data-result-meta data-operation-succeeded="@(ViewData.ModelState.IsValid ? "true" : "false")" data-has-discovered="@(details is not null ? "true" : "false")">
+    <div asp-validation-summary="All" role="alert"></div>
+</div>
+<nav class="breadcrumbs" aria-label="@Text["player.breadcrumbs"]" data-player-breadcrumb>
+    <a asp-page="/Index">@Text["player.all"]</a>
+    <span aria-hidden="true"> / </span>
+    <span aria-current="page">@(details?.Speaker.RoomName ?? Text["player.title"])</span>
+</nav>
+@if (details is not null)
+{
+    <div class="rooms player-room">
+        <partial name="_SpeakerCard" model="details.Speaker" />
+    </div>
+    <partial name="_PlayerQueue" model="details" />
+}

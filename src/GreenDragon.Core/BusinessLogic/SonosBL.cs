@@ -28,6 +28,31 @@ public sealed class SonosBL(SonosBackgroundService worker, IOptions<SonosSetting
     }
 
     /// <inheritdoc />
+    public async Task<SpeakerDetailsSnapshot> ReadPlayerAsync(string speakerId, CancellationToken cancellationToken)
+    {
+        var details = await worker.ReadPlayerAsync(speakerId, cancellationToken);
+        var queue = details.Queue;
+        var playback = details.Speaker.Playback;
+        SpeakerQueueTrack? next = null;
+        if (queue.IsAvailable && queue.IsActive && queue.CurrentTrackNumber > 0)
+        {
+            if (playback.Repeat == SonosRepeatMode.One)
+            {
+                next = queue.Tracks.FirstOrDefault(track => track.Number == queue.CurrentTrackNumber);
+            }
+            else if (playback.Shuffle == false)
+            {
+                next = queue.Tracks.FirstOrDefault(track => track.Number == queue.CurrentTrackNumber + 1);
+                if (next is null && queue.CurrentTrackNumber == queue.TotalCount && playback.Repeat == SonosRepeatMode.All)
+                {
+                    next = queue.FirstTrack;
+                }
+            }
+        }
+        return details with { Queue = queue with { NextTrack = next } };
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<SpeakerSnapshot>> ExecuteAsync(SonosCommand command, CancellationToken cancellationToken)
     {
         command.Validate();

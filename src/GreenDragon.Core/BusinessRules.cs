@@ -22,6 +22,8 @@ public static class BusinessRules
         public const int MaximumVolume = 100;
         /// <summary>Percentage points changed by volume buttons.</summary>
         public const int VolumeStep = 1;
+        /// <summary>Maximum queue entries read and displayed in a player preview.</summary>
+        public const int QueuePreviewLength = 20;
         /// <summary>Maximum accepted player identifier length.</summary>
         public const int MaximumIdLength = 256;
     }

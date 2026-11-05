@@ -1,0 +1,29 @@
+@page "/players/{id}"
+@model PlayerModel
+@inject GreenDragon.Web.Localization.UiText Text
+@{
+    ViewData["Title"] = Model.Details?.Speaker.RoomName ?? Text["player.title"];
+}
+<section class="portal player-page" aria-labelledby="player-title">
+    <h1 id="player-title">@Text["player.title"]</h1>
+    <div data-speaker-results>
+        <partial name="_PlayerResults" model="Model" />
+    </div>
+    @if (Model.SonosEnabled)
+    {
+        <div class="loading-card" data-loading-card role="status" aria-live="polite" hidden>
+            <span data-progress></span>
+        </div>
+        <form class="refresh-controls" method="post" asp-page-handler="Refresh" asp-route-id="@Model.Id" data-discovery-form
+              data-auto-load="@(Model.AutoLoad ? "true" : "false")" data-refresh-url="@Url.Page("/Player", "Refresh", new { id = Model.Id })"
+              data-refresh-seconds="@Model.RefreshIntervalSeconds" data-error-label="@Text["home.discovery.error"]"
+              data-busy-label="@Text["player.loading"]">
+            <button type="submit" data-refresh-action>@Text["player.refresh"]</button>
+        </form>
+        <noscript><p>@Text["player.manual"]</p></noscript>
+    }
+    else
+    {
+        <p role="status">@Text["home.disabled"]</p>
+    }
+</section>

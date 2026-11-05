@@ -50,14 +50,32 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
         return QueueAsync(token => gateway.ExecuteAsync(command, token), cancellationToken);
     }
 
-    private async Task<IReadOnlyList<SpeakerSnapshot>> QueueAsync(
-        Func<CancellationToken, Task<IReadOnlyList<SpeakerSnapshot>>> operation, CancellationToken cancellationToken)
+    /// <summary>Queues a selected-player read alongside discovery and commands.</summary>
+    /// <param name="speakerId">The known player identifier.</param>
+    /// <param name="cancellationToken">Cancels waiting without overlapping upstream operations.</param>
+    /// <returns>The room snapshot and queue preview.</returns>
+    public Task<SpeakerDetailsSnapshot> ReadPlayerAsync(string speakerId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(speakerId) || speakerId.Length > BusinessRules.Sonos.MaximumIdLength)
+        {
+            throw new BusinessLogicException(SonosMessages.InvalidCommand);
+        }
+        return QueueAsync(token => gateway.ReadPlayerAsync(speakerId, token), cancellationToken);
+    }
+
+    private async Task<T> QueueAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken cancellationToken)
     {
         if (!settings.Value.Enabled)
         {
             throw new BusinessLogicException(SonosMessages.Disabled);
         }
-        var request = new SonosRequest(operation, cancellationToken);
+        var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var request = new SonosRequest(async token =>
+        {
+            var result = await operation(token);
+            token.ThrowIfCancellationRequested();
+            completion.TrySetResult(result);
+        }, cancellationToken, exception => completion.TrySetException(exception), token => completion.TrySetCanceled(token));
         try
         {
             await _requests.Writer.WriteAsync(request, cancellationToken);
@@ -66,7 +84,7 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
         {
             throw new BusinessLogicException(SonosMessages.Stopping);
         }
-        return await request.Completion.Task.WaitAsync(cancellationToken);
+        return await completion.Task.WaitAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -91,18 +109,16 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
                 try
                 {
                     linked.Token.ThrowIfCancellationRequested();
-                    var speakers = await request.Operation(linked.Token);
-                    linked.Token.ThrowIfCancellationRequested();
-                    request.Completion.TrySetResult(speakers);
+                    await request.Operation(linked.Token);
                 }
                 catch (OperationCanceledException) when (linked.IsCancellationRequested)
                 {
-                    request.Completion.TrySetCanceled(linked.Token);
+                    request.Cancel(linked.Token);
                 }
                 catch (Exception exception)
                 {
                     logger.LogWarning(exception, "Sonos request failed");
-                    request.Completion.TrySetException(new BusinessLogicException(SonosMessages.DiscoveryFailed));
+                    request.Fail(new BusinessLogicException(SonosMessages.DiscoveryFailed));
                 }
             }
         }
@@ -115,20 +131,14 @@ public sealed class SonosBackgroundService(ISonosGateway gateway, IOptions<Sonos
             _requests.Writer.TryComplete();
             while (_requests.Reader.TryRead(out var request))
             {
-                request.Completion.TrySetCanceled(stoppingToken);
+                request.Cancel(stoppingToken);
             }
         }
     }
 
-    private sealed class SonosRequest(Func<CancellationToken, Task<IReadOnlyList<SpeakerSnapshot>>> operation, CancellationToken cancellationToken)
-    {
-        /// <summary>Allows queued work to be skipped after its caller disconnects.</summary>
-        public CancellationToken CancellationToken { get; } = cancellationToken;
-        /// <summary>The operation executed only by the single channel reader.</summary>
-        public Func<CancellationToken, Task<IReadOnlyList<SpeakerSnapshot>>> Operation { get; } = operation;
-
-        /// <summary>Returns the outcome to the caller without executing its continuation on the worker.</summary>
-        public TaskCompletionSource<IReadOnlyList<SpeakerSnapshot>> Completion { get; } =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-    }
+    private sealed record SonosRequest(
+        Func<CancellationToken, Task> Operation,
+        CancellationToken CancellationToken,
+        Action<Exception> Fail,
+        Action<CancellationToken> Cancel);
 }

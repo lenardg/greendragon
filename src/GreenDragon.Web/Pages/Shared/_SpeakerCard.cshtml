@@ -1,8 +1,11 @@
 @model GreenDragon.Core.Sonos.SpeakerSnapshot
 @using GreenDragon.Core
 @using GreenDragon.Core.Sonos
+@using GreenDragon.Web.Configuration
 @inject GreenDragon.Web.Localization.UiText Text
 @{
+    var playerId = ViewData[PortalRequests.PlayerIdKey] as string;
+    var commandPage = playerId is null ? "/Index" : "/Player";
     var playback = Model.Playback;
     var playing = playback.State == SpeakerPlaybackState.Playing;
     var repeatLabel = Text[$"home.repeat.{playback.Repeat?.ToString().ToLowerInvariant() ?? "unknown"}"];
@@ -10,7 +13,16 @@
 }
 <article class="room" data-speaker-id="@Model.Id">
     <div data-card-display>
-        <h2>@Model.RoomName</h2>
+        <h2>
+            @if (playerId is null)
+            {
+                <a class="player-link" asp-page="/Player" asp-route-id="@Model.Id">@Model.RoomName</a>
+            }
+            else
+            {
+                @Model.RoomName
+            }
+        </h2>
         <h3>@(string.IsNullOrWhiteSpace(playback.Title) ? Text["home.speaker.noTrack"] : playback.Title)</h3>
         @if (!string.IsNullOrWhiteSpace(playback.Artist))
         {
@@ -42,7 +54,7 @@
             <progress max="@trackDuration.TotalSeconds" value="@Math.Clamp(position.TotalSeconds, 0, trackDuration.TotalSeconds)" aria-label="@Text["home.speaker.position"]"></progress>
         }
     </div>
-    <form method="post" asp-page="/Index" asp-page-handler="Command" class="transport-controls" data-command-form aria-label="@Model.RoomName">
+    <form method="post" asp-page="@commandPage" asp-route-id="@playerId" asp-page-handler="Command" class="transport-controls" data-command-form aria-label="@Model.RoomName">
         <input type="hidden" name="SpeakerId" value="@Model.Id" />
         <button type="submit" name="Kind" value="Previous" class="icon-button secondary" data-control="previous" aria-label="@Text["home.controls.previous"]" title="@Text["home.controls.previous"]" disabled="@(!playback.CanPrevious)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M19 4 8 12l11 8Z" /></svg>
@@ -67,7 +79,7 @@
             <span class="mode-label">@shuffleLabel</span>
         </button>
     </form>
-    <form method="post" asp-page="/Index" asp-page-handler="Command" class="volume-controls" data-command-form data-volume-form>
+    <form method="post" asp-page="@commandPage" asp-route-id="@playerId" asp-page-handler="Command" class="volume-controls" data-command-form data-volume-form>
         <input type="hidden" name="SpeakerId" value="@Model.Id" />
         <label class="volume-label"><span>@Text["home.speaker.volume"] <span data-volume-value>@(Model.Volume is { } volume ? $"{volume}%" : Text["home.speaker.unknown"])</span></span>
             <input type="range" name="Volume" min="@BusinessRules.Sonos.MinimumVolume" max="@BusinessRules.Sonos.MaximumVolume" step="@BusinessRules.Sonos.VolumeStep" value="@(Model.Volume ?? 0)" data-control="volume" disabled="@(Model.Volume is null)" />

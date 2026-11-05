@@ -9,6 +9,10 @@ public static class PortalRequests
     public const string Fetch = "fetch";
     /// <summary>The partial that renders card results and errors.</summary>
     public const string ResultsPartial = "_SpeakerResults";
+    /// <summary>The selected-player results fragment.</summary>
+    public const string PlayerResultsPartial = "_PlayerResults";
+    /// <summary>The view-data key selecting player-specific card form routes.</summary>
+    public const string PlayerIdKey = "PlayerId";
     /// <summary>Prevents browser caching of live status and antiforgery-bearing fragments.</summary>
     public const string NoCacheNoStore = "no-cache, no-store";
 }
